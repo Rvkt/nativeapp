@@ -2,9 +2,6 @@ package com.softmintindia.pgsdk
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
@@ -15,12 +12,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,7 +26,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -49,7 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -65,6 +55,13 @@ import com.google.zxing.MultiFormatWriter
 import com.google.zxing.common.BitMatrix
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import com.softmintindia.pgsdk.ui.theme.AppTheme
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
+import kotlinx.coroutines.delay
+
 
 
 class PaymentActivity : ComponentActivity() {
@@ -75,6 +72,7 @@ class PaymentActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 Scaffold(
+                    containerColor = Color(0xFF3F51B5),
                     modifier = Modifier.fillMaxSize(),
 //                    topBar = { AppBar() }
                 ) { innerPadding ->
@@ -87,37 +85,21 @@ class PaymentActivity : ComponentActivity() {
 
 
 
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun AppBar() {
-//    TopAppBar(
-//        title = {
-//            Row(
-//                verticalAlignment = Alignment.CenterVertically,
-//                horizontalArrangement = Arrangement.Center
-//            ) {
-//                // White square on the left side of the title
-//                Box(
-//                    modifier = Modifier
-//                        .size(48.dp) // Adjust the size of the square
-//                        .background(Color.White) // Set the color to white
-//                )
-//                Spacer(modifier = Modifier.width(8.dp)) // Add some space between image and title text
-//                Text(
-//                    text = "PGSDK - Payment Options",
-//                    fontSize = 18.sp,
-//                    fontWeight = FontWeight.Bold,
-//                    color = Color.White,
-//                    textAlign = TextAlign.Center
-//                )
-//            }
-//        },
-//        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-//            containerColor = Color(0xFF3F51B5), // AppBar background color
-//            titleContentColor = Color.White    // Title text color
-//        )
-//    )
-//}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppBar() {
+    TopAppBar(
+        title = {
+            // You can add content inside the title if needed
+        },
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+            containerColor = Color(0xFF3F51B5), // AppBar background color
+            titleContentColor = Color.White    // Title text color
+        ),
+        modifier = Modifier.height(16.dp) // Change the height here
+    )
+}
+
 
 
 
@@ -125,14 +107,13 @@ class PaymentActivity : ComponentActivity() {
 
 @Composable
 fun MainContent(modifier: Modifier = Modifier) {
-//    val context = LocalContext.current
-//    val scrollState = rememberScrollState()
     Column(
         modifier = modifier
             .fillMaxSize()
             .fillMaxHeight()
             .background(Color(0xFFF6F7FF))
-            .padding(16.dp),
+            .verticalScroll(rememberScrollState())
+            .padding(0.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
@@ -144,18 +125,13 @@ fun MainContent(modifier: Modifier = Modifier) {
 
         QRExpansionTile( title = "Pay using QR", iconResourceId = R.drawable.ic_qrcode, upiId = "https://example.com")
 
-        Spacer(modifier = Modifier.height(24.dp))
-//        AmountDisplay()
-//        Spacer(modifier = Modifier.height(16.dp))
-        // todo: QR image.
-//        PaymentScreen(content = "https://example.com")
+        InputFieldWithSubmit(title = "Pay using UPI/VPA", iconResourceId = R.drawable.ic_qrcode,)
+
+//        Spacer(modifier = Modifier.height(24.dp))
         // todo: Add Row with app icon, app name, and right arrow
         RecommendedUPIApps()
-        Spacer(modifier = Modifier.height(16.dp))
+//        Spacer(modifier = Modifier.height(16.dp))
 
-
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         ExpansionTile(
             title = "All Payment Options",
@@ -166,6 +142,8 @@ fun MainContent(modifier: Modifier = Modifier) {
 
 
 
+
+
         Spacer(modifier = Modifier.height(24.dp))
         Button(
             onClick = { Log.d("ButtonClick", "Continue clicked") },
@@ -173,6 +151,7 @@ fun MainContent(modifier: Modifier = Modifier) {
             colors = ButtonDefaults.buttonColors(contentColor = Color(0xFF3F51B5)  ),
             modifier = Modifier
                 .height(64.dp)
+                .padding(horizontal = 16.dp)
                 .fillMaxWidth()
         ) {
             Text(
@@ -191,7 +170,7 @@ fun MerchantDetailsHeader(companyName: String, amount: String) {
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .background(Color(0xFF3F51B5)) // Set a custom background color here
+            .background(Color(0xFF3F51B5))
             .padding(16.dp), // Optional padding
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.Start, // Align items to the start
@@ -232,6 +211,7 @@ fun MerchantDetailsHeader(companyName: String, amount: String) {
                 color = Color.White,
                 textAlign = TextAlign.Start
             )
+
         }
     }
 }
@@ -320,7 +300,8 @@ fun RecommendedUPIApps() {
 
 
 
-    Column {
+    Column (modifier = Modifier.padding(16.dp) ){
+
         Text(
             text = "Recommended",
             fontSize = 16.sp,
@@ -334,12 +315,13 @@ fun RecommendedUPIApps() {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
+
                 .border(
                     width = 1.dp, // Border width
                     color = Color(0xFFE9E9E9), // Border color
                     shape = RoundedCornerShape(8.dp) // Rounded corners for the border
                 )
-                .padding(0.dp),
+                .padding(horizontal = 0.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp, focusedElevation = 0.dp),
             shape = RoundedCornerShape(8.dp), // Rounded corners for the card
             colors = CardDefaults.cardColors(
@@ -400,91 +382,6 @@ fun RecommendedUPIApps() {
     }
 }
 
-@Composable
-fun AmountDisplay() {
-    Column(modifier = Modifier.padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Amount",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Gray
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = "₹1000",
-            fontSize = 48.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        )
-    }
-}
-
-@Composable
-fun PaymentScreen(content: String) {
-    // Remember the state for showing the QR code dialog
-    val showQrCodeDialog = remember { mutableStateOf(false) }
-
-    // Generate the QR code bitmap
-    val qrCodeBitmap = generateQRCode(content)
-
-    Box(modifier = Modifier.wrapContentSize()) {
-        // Button to toggle QR code dialog visibility
-        Button(
-            onClick = { showQrCodeDialog.value = true },
-            modifier = Modifier.align(Alignment.Center)
-        ) {
-            Text("Pay using QR")
-        }
-
-        // Show the QR code dialog when the button is clicked
-        if (showQrCodeDialog.value) {
-            AlertDialog(
-                onDismissRequest = { showQrCodeDialog.value = false },
-                title = {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("QR Code")
-                    }
-                },
-                text = {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Show QR Code or error message inside the Row
-                        if (qrCodeBitmap != null) {
-                            Image(
-                                bitmap = qrCodeBitmap.asImageBitmap(),
-                                contentDescription = "QR Code",
-                                modifier = Modifier.size(200.dp)  // Adjust the size of the QR code
-                            )
-                        } else {
-                            Text("Failed to generate QR code")
-                        }
-                    }
-                },
-                confirmButton = {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Button(
-                            onClick = { showQrCodeDialog.value = false }
-                        ) {
-                            Text("Close")
-                        }
-                    }
-                }
-            )
-        }
-    }
-}
-
 
 private fun generateQRCode(content: String): Bitmap? {
     val writer = MultiFormatWriter()
@@ -499,27 +396,6 @@ private fun generateQRCode(content: String): Bitmap? {
 }
 
 
-
-
-
-fun launchPhonePeApp(context: Context) {
-    try {
-        // Attempt to launch the PhonePe app using its package name
-        val intent = context.packageManager.getLaunchIntentForPackage("com.phonepe.app")
-        if (intent != null) {
-            context.startActivity(intent)  // Launch the app
-        } else {
-            // If PhonePe is not installed, redirect to Play Store
-            val playStoreIntent = Intent(Intent.ACTION_VIEW,
-                android.net.Uri.parse("https://play.google.com/store/apps/details?id=com.phonepe.app"))
-            context.startActivity(playStoreIntent)
-        }
-    } catch (e: PackageManager.NameNotFoundException) {
-        // Handle case where the package is not found
-        Toast.makeText(context, "PhonePe app is not installed", Toast.LENGTH_SHORT).show()
-    }
-}
-
 @SuppressLint("RememberReturnType")
 @Composable
 fun QRExpansionTile(title: String, iconResourceId: Int, upiId: String) {
@@ -528,7 +404,9 @@ fun QRExpansionTile(title: String, iconResourceId: Int, upiId: String) {
     // Generate the QR code bitmap
     val qrCodeBitmap = generateQRCode(upiId)
 
-    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 0.dp)) {
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp)) {
         Text(
             text = "Preferred Payment Methods",
             fontSize = 16.sp,
@@ -562,7 +440,7 @@ fun QRExpansionTile(title: String, iconResourceId: Int, upiId: String) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable (
+                        .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) { expanded.value = !expanded.value }
@@ -624,6 +502,258 @@ fun QRExpansionTile(title: String, iconResourceId: Int, upiId: String) {
     }
 }
 
+@Composable
+fun InputFieldWithSubmit(title: String, iconResourceId: Int) {
+
+    val expanded = remember { mutableStateOf(false) }
+
+    // State for holding the text input
+    var inputText by remember { mutableStateOf("") }
+
+
+
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp)){
+        Text(
+            text = "Raise UPI Request",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (isSystemInDarkTheme()) Color.White else Color.Gray,
+            modifier = Modifier
+                .align(Alignment.Start)
+                .padding(top = 24.dp, bottom = 8.dp)
+        )
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(
+                    width = 0.dp,
+                    color = Color(0xFFE9E9E9),
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .padding(0.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp, focusedElevation = 0.dp),
+            shape = RoundedCornerShape(8.dp), // Rounded corners for the card
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(vertical = 8.dp)
+            ) {
+                // Header with icon to toggle expansion
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { expanded.value = !expanded.value }
+                        .padding(start = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(id = iconResourceId),
+                        contentDescription = "$title Icon",
+                        modifier = Modifier.size(24.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        text = title,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF5C6BC0),
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    IconButton(onClick = { expanded.value = !expanded.value }) {
+                        Icon(
+                            imageVector = if (expanded.value) {
+                                Icons.Filled.KeyboardArrowUp
+                            } else {
+                                Icons.Filled.KeyboardArrowDown
+                            },
+                            tint = if (expanded.value) Color.Gray else LocalContentColor.current,
+                            contentDescription = "Expand/Collapse"
+                        )
+                    }
+                }
+
+                // Content that expands or collapses
+                AnimatedVisibility(visible = expanded.value) {
+
+                    UPIValidationForm()
+
+                }
+            }
+        }
+    }
+
+
+}
+
+
+@Composable
+fun UPIValidationForm() {
+    var upiId by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
+    var isUpiValid by remember { mutableStateOf(false) }
+    var isSubmitted by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
+
+    val verifyButtonFocusRequester = remember { FocusRequester() }
+    val submitButtonFocusRequester = remember { FocusRequester() }
+
+    val focusManager = LocalFocusManager.current
+
+    // Function to validate UPI ID
+    fun validateUpiId(upi: String): Boolean {
+        val regex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+$".toRegex()
+        return regex.matches(upi)
+    }
+
+    LaunchedEffect(isUpiValid) {
+        if (isUpiValid) {
+            submitButtonFocusRequester.requestFocus()
+        } else {
+            verifyButtonFocusRequester.requestFocus()
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // UPI ID Input Field
+        OutlinedTextField(
+            value = upiId,
+            maxLines = 1,
+            onValueChange = { upiId = it },
+            label = { Text("Enter UPI ID") },
+            isError = !isUpiValid && upiId.isNotEmpty(),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    // Validate the UPI ID on 'Done'
+                    isUpiValid = validateUpiId(upiId)
+                    if (isUpiValid) {
+                        focusManager.clearFocus() // Clear focus from the input field
+                    }
+                }
+            ),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Conditionally display the name if UPI ID is valid
+        if (isSubmitted && name.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Name: $name",
+                fontSize = 16.sp,
+                color = Color.Green,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.Start)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Conditionally show either "VERIFY UPI" or "SUBMIT" button
+        if (!isUpiValid) {
+            // Show "VERIFY UPI" button if the UPI ID is not yet valid
+            Button(
+                onClick = {
+                    isUpiValid = validateUpiId(upiId)
+                    if (isUpiValid) {
+                        name = "John Doe" // Replace with dynamic logic if necessary
+                        isSubmitted = true
+                        focusManager.clearFocus() // Clear focus from the input field
+                    } else {
+                        name = ""
+                        isSubmitted = false
+                    }
+                },
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(contentColor = Color(0xFF3F51B5)),
+                modifier = Modifier
+                    .height(64.dp)
+                    .fillMaxWidth()
+                    .focusRequester(verifyButtonFocusRequester)
+            ) {
+                Text(
+                    text = "VERIFY UPI",
+                    fontSize = 20.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        } else {
+            // Show "SUBMIT" button if the UPI ID is valid
+            Button(
+                onClick = {
+                    showDialog = true // Show the confirmation dialog
+                },
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(contentColor = Color(0xFF3F51B5)),
+                modifier = Modifier
+                    .height(64.dp)
+                    .fillMaxWidth()
+                    .focusRequester(submitButtonFocusRequester)
+            ) {
+                Text(
+                    text = "SUBMIT",
+                    fontSize = 20.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        // Display the dismissible alert dialog
+        if (showDialog) {
+            DismissibleAlertDialog(onDismiss = { showDialog = false })
+        }
+    }
+}
+
+
+
+@Composable
+fun DismissibleAlertDialog(onDismiss: () -> Unit) {
+    var timeLeft by remember { mutableStateOf(60) } // 5 minutes in seconds
+
+    LaunchedEffect(Unit) {
+        while (timeLeft > 0) {
+            delay(1000L)
+            timeLeft -= 1
+        }
+        onDismiss() // Close dialog after 5 minutes
+    }
+
+    AlertDialog(
+        onDismissRequest = { /* Do nothing to prevent dismissing on outside clicks */ },
+        title = { Text(text = "Confirm Payment") },
+        text = {
+            Text(
+                text = "Please make the payment using the UPI ID you entered. " +
+                        "This dialog will automatically close in ${timeLeft / 60}m ${timeLeft % 60}s."
+            )
+        },
+        confirmButton = { /* No confirm button */ },
+        dismissButton = { /* No dismiss button */ },
+        modifier = Modifier.clip(RoundedCornerShape(16.dp)) // Custom shape
+    )
+}
+
+
+
 
 
 
@@ -650,33 +780,34 @@ fun ExpansionTile(title: String, content: @Composable (visibleButtons: List<Stri
     // Determine which buttons to show based on expansion state
     val visibleButtons = if (isExpanded) buttonList else buttonList.take(4)
 
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-//            .fillMaxHeight(0.775f)
+    Card(modifier = Modifier.padding( horizontal = 16.dp)
             .border(
-                width = 1.dp, // Border width
-                color = Color(0xFFE9E9E9), // Border color
-                shape = RoundedCornerShape(8.dp) // Rounded corners for the border
+                width = 0.dp,
+                color = Color(0xFFE9E9E9),
+                shape = RoundedCornerShape(8.dp)
             )
-            .padding(0.dp), // Card padding
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp, focusedElevation = 0.dp), // Optional elevation for shadow effect
+            .padding(0.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp, focusedElevation = 0.dp),
         shape = RoundedCornerShape(8.dp), // Rounded corners for the card
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFFE8EAF6)
         )
+
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp) // Padding for content inside the Card
+                .padding(8.dp)
         ) {
             // Header of the ExpansionTile
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-                    .clickable { isExpanded = !isExpanded },
+                    .padding(horizontal = 8.dp, vertical = 12.dp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { isExpanded = !isExpanded },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -693,77 +824,149 @@ fun ExpansionTile(title: String, content: @Composable (visibleButtons: List<Stri
                 )
             }
 
-//            AnimatedVisibility(
-//                visible = isExpanded,
-//                enter = fadeIn(tween(300)) + expandVertically(tween(300)),
-//                exit = fadeOut(tween(300)) + shrinkVertically(tween(300))
-//            ) {
-//                Column(modifier = Modifier.animateContentSize()) {
-//                    Spacer(modifier = Modifier.height(8.dp)) // Spacer for a little spacing before the content
-//                    content(visibleButtons) // Pass the visible buttons list to the content
-//                }
-//            }
-
             if (isExpanded) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
             }
             content(visibleButtons)
         }
     }
-}
 
+
+}
 
 @Composable
 fun ButtonList(visibleButtons: List<String>) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2), // 2 buttons per row
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(4.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp, horizontal = 8.dp)
     ) {
-        items(visibleButtons) { button ->
-            Button(
-                onClick = { Log.d("ButtonClick", "App Name: $button") },
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp) // Padding between buttons
+        // Group buttons into rows
+        visibleButtons.chunked(4).forEach { rowButtons ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp), // Space between buttons
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Replace with actual icons for each button
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_googlepay), // Replace with dynamic icons
-                        contentDescription = "App Icon",
-                        modifier = Modifier.size(8.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    // App Name
-                    Text(
-                        text = button,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF5C6BC0),
+                rowButtons.forEach { button ->
+                    Column (
+                        horizontalAlignment = Alignment.Start,
                         modifier = Modifier.weight(1f)
-                    )
+                    ){
 
+                        Button(
+                            onClick = { Log.d("ButtonClick", "App Name: $button") },
+                            shape = RoundedCornerShape(64.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                            modifier = Modifier
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_googlepay), // Replace with dynamic icons
+                                contentDescription = "App Icon",
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
+                        Text(
+                            text = button,
+                            fontSize = 12.sp,
+                            maxLines = 1,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            overflow = TextOverflow.Ellipsis,
+                            color = Color(0xFF5C6BC0),
+//                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
 
-                    // Right Arrow Icon
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = null,
-                        tint = Color(0xFFDFDFDF)
-                    )
                 }
             }
         }
     }
 }
+
+//@Composable
+//fun ButtonList(visibleButtons: List<String>) {
+//    LazyVerticalGrid(
+//        columns = GridCells.Fixed(4), // 2 buttons per row
+//        modifier = Modifier.fillMaxWidth(),
+//        contentPadding = PaddingValues(vertical = 4.dp)
+//    ) {
+//        items(visibleButtons) { button ->
+//            Column {
+//                Button(
+//                    onClick = { Log.d("ButtonClick", "App Name: $button") },
+//                    shape = RoundedCornerShape(64.dp),
+//                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(vertical = 24.dp, horizontal = 8.dp) // Padding between buttons
+//                ) {
+//                    Image(
+//                        painter = painterResource(id = R.drawable.ic_googlepay), // Replace with dynamic icons
+//                        contentDescription = "App Icon",
+//                        modifier = Modifier.size(36.dp)
+//                    )
+//                }
+//
+//                // App Name
+//                Text(
+//                    text = button,
+//                    fontSize = 12.sp,
+//                    maxLines = 1,
+//                    fontWeight = FontWeight.Bold,
+//                    textAlign = TextAlign.Center,
+//                    overflow = TextOverflow.Ellipsis,
+//                    color = Color(0xFF5C6BC0),
+//                    modifier = Modifier.fillMaxWidth()
+//                )
+//            }
+////            Button(
+////                onClick = { Log.d("ButtonClick", "App Name: $button") },
+////                shape = RoundedCornerShape(8.dp),
+////                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+////                modifier = Modifier
+////                    .fillMaxWidth()
+////                    .padding(8.dp) // Padding between buttons
+////            ) {
+////                Column(
+////                    modifier = Modifier
+////                        .fillMaxWidth()
+////                        .padding(vertical = 4.dp),
+////                    horizontalAlignment = Alignment.CenterHorizontally
+////                ) {
+////                    // Replace with actual icons for each button
+////                    Image(
+////                        painter = painterResource(id = R.drawable.ic_googlepay), // Replace with dynamic icons
+////                        contentDescription = "App Icon",
+////                        modifier = Modifier.size(36.dp)
+////                    )
+////                    Spacer(modifier = Modifier.height(16.dp))
+////
+////                    // App Name
+////                    Text(
+////                        text = button,
+////                        fontSize = 12.sp,
+////                        maxLines = 1,
+////                        fontWeight = FontWeight.Bold,
+////                        textAlign = TextAlign.Center,
+////                        overflow = TextOverflow.Ellipsis,
+////                        color = Color(0xFF5C6BC0),
+////                        modifier = Modifier.fillMaxWidth()
+////                    )
+////
+////
+////                    // Right Arrow Icon
+//////                    Icon(
+//////                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+//////                        contentDescription = null,
+//////                        tint = Color(0xFFDFDFDF)
+//////                    )
+////                }
+////            }
+//        }
+//    }
+//}
 
 
 @Preview(showBackground = true)
