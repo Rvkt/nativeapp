@@ -16,14 +16,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -34,15 +29,20 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -55,18 +55,16 @@ import com.google.zxing.MultiFormatWriter
 import com.google.zxing.common.BitMatrix
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import com.softmintindia.pgsdk.ui.theme.AppTheme
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalFocusManager
 import kotlinx.coroutines.delay
-
 
 
 class PaymentActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val companyName = intent.getStringExtra("COMPANY") ?: ""
+        val amount = intent.getStringExtra("AMOUNT") ?: "0.00"
+        val upiUrl = intent.getStringExtra("UPI_URL") ?: ""
 
         enableEdgeToEdge()
         setContent {
@@ -74,9 +72,14 @@ class PaymentActivity : ComponentActivity() {
                 Scaffold(
                     containerColor = Color(0xFF3F51B5),
                     modifier = Modifier.fillMaxSize(),
-//                    topBar = { AppBar() }
+                    topBar = { AppBar() }
                 ) { innerPadding ->
-                    MainContent(Modifier.padding(innerPadding))
+                    MainContent(
+                        companyName = companyName,
+                        amount = amount,
+                        upiUrl = upiUrl,
+                        modifier = Modifier.padding(innerPadding)
+                    )
                 }
             }
         }
@@ -96,7 +99,7 @@ fun AppBar() {
             containerColor = Color(0xFF3F51B5), // AppBar background color
             titleContentColor = Color.White    // Title text color
         ),
-        modifier = Modifier.height(16.dp) // Change the height here
+        modifier = Modifier.height(24.dp) // Change the height here
     )
 }
 
@@ -106,26 +109,31 @@ fun AppBar() {
 
 
 @Composable
-fun MainContent(modifier: Modifier = Modifier) {
+fun MainContent(
+    modifier: Modifier = Modifier,
+    companyName: String,
+    amount: String,
+    upiUrl: String
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
             .fillMaxHeight()
             .background(Color(0xFFF6F7FF))
             .verticalScroll(rememberScrollState())
-            .padding(0.dp),
+            .padding(bottom = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
 
         MerchantDetailsHeader(
-            companyName = "Softmint India",
-            amount = "₹ 5000",
+            companyName = companyName,
+            amount = "₹ $amount",
         )
 
-        QRExpansionTile( title = "Pay using QR", iconResourceId = R.drawable.ic_qrcode, upiId = "https://example.com")
+        QRExpansionTile( title = "Pay using QR", iconResourceId = R.drawable.ic_qrcode, upiId = upiUrl)
 
-        InputFieldWithSubmit(title = "Pay using UPI/VPA", iconResourceId = R.drawable.ic_qrcode,)
+        InputFieldWithSubmit(title = "Pay using UPI/VPA", iconResourceId = R.drawable.ic_qrcode)
 
 //        Spacer(modifier = Modifier.height(24.dp))
         // todo: Add Row with app icon, app name, and right arrow
@@ -315,7 +323,6 @@ fun RecommendedUPIApps() {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-
                 .border(
                     width = 1.dp, // Border width
                     color = Color(0xFFE9E9E9), // Border color
@@ -780,13 +787,14 @@ fun ExpansionTile(title: String, content: @Composable (visibleButtons: List<Stri
     // Determine which buttons to show based on expansion state
     val visibleButtons = if (isExpanded) buttonList else buttonList.take(4)
 
-    Card(modifier = Modifier.padding( horizontal = 16.dp)
-            .border(
-                width = 0.dp,
-                color = Color(0xFFE9E9E9),
-                shape = RoundedCornerShape(8.dp)
-            )
-            .padding(0.dp),
+    Card(modifier = Modifier
+        .padding(horizontal = 16.dp)
+        .border(
+            width = 0.dp,
+            color = Color(0xFFE9E9E9),
+            shape = RoundedCornerShape(8.dp)
+        )
+        .padding(0.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp, focusedElevation = 0.dp),
         shape = RoundedCornerShape(8.dp), // Rounded corners for the card
         colors = CardDefaults.cardColors(
@@ -839,7 +847,8 @@ fun ButtonList(visibleButtons: List<String>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp, horizontal = 8.dp)
+            .padding(vertical = 4.dp, horizontal = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Group buttons into rows
         visibleButtons.chunked(4).forEach { rowButtons ->
@@ -850,8 +859,8 @@ fun ButtonList(visibleButtons: List<String>) {
             ) {
                 rowButtons.forEach { button ->
                     Column (
-                        horizontalAlignment = Alignment.Start,
-                        modifier = Modifier.weight(1f)
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.weight(1f).padding(bottom = 16.dp)
                     ){
 
                         Button(
@@ -870,7 +879,7 @@ fun ButtonList(visibleButtons: List<String>) {
                         Text(
                             text = button,
                             fontSize = 12.sp,
-                            maxLines = 1,
+                            maxLines = 2,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                             overflow = TextOverflow.Ellipsis,
@@ -885,98 +894,19 @@ fun ButtonList(visibleButtons: List<String>) {
     }
 }
 
+
+//@Preview(showBackground = true)
 //@Composable
-//fun ButtonList(visibleButtons: List<String>) {
-//    LazyVerticalGrid(
-//        columns = GridCells.Fixed(4), // 2 buttons per row
-//        modifier = Modifier.fillMaxWidth(),
-//        contentPadding = PaddingValues(vertical = 4.dp)
-//    ) {
-//        items(visibleButtons) { button ->
-//            Column {
-//                Button(
-//                    onClick = { Log.d("ButtonClick", "App Name: $button") },
-//                    shape = RoundedCornerShape(64.dp),
-//                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(vertical = 24.dp, horizontal = 8.dp) // Padding between buttons
-//                ) {
-//                    Image(
-//                        painter = painterResource(id = R.drawable.ic_googlepay), // Replace with dynamic icons
-//                        contentDescription = "App Icon",
-//                        modifier = Modifier.size(36.dp)
-//                    )
-//                }
-//
-//                // App Name
-//                Text(
-//                    text = button,
-//                    fontSize = 12.sp,
-//                    maxLines = 1,
-//                    fontWeight = FontWeight.Bold,
-//                    textAlign = TextAlign.Center,
-//                    overflow = TextOverflow.Ellipsis,
-//                    color = Color(0xFF5C6BC0),
-//                    modifier = Modifier.fillMaxWidth()
-//                )
-//            }
-////            Button(
-////                onClick = { Log.d("ButtonClick", "App Name: $button") },
-////                shape = RoundedCornerShape(8.dp),
-////                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-////                modifier = Modifier
-////                    .fillMaxWidth()
-////                    .padding(8.dp) // Padding between buttons
-////            ) {
-////                Column(
-////                    modifier = Modifier
-////                        .fillMaxWidth()
-////                        .padding(vertical = 4.dp),
-////                    horizontalAlignment = Alignment.CenterHorizontally
-////                ) {
-////                    // Replace with actual icons for each button
-////                    Image(
-////                        painter = painterResource(id = R.drawable.ic_googlepay), // Replace with dynamic icons
-////                        contentDescription = "App Icon",
-////                        modifier = Modifier.size(36.dp)
-////                    )
-////                    Spacer(modifier = Modifier.height(16.dp))
-////
-////                    // App Name
-////                    Text(
-////                        text = button,
-////                        fontSize = 12.sp,
-////                        maxLines = 1,
-////                        fontWeight = FontWeight.Bold,
-////                        textAlign = TextAlign.Center,
-////                        overflow = TextOverflow.Ellipsis,
-////                        color = Color(0xFF5C6BC0),
-////                        modifier = Modifier.fillMaxWidth()
-////                    )
-////
-////
-////                    // Right Arrow Icon
-//////                    Icon(
-//////                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-//////                        contentDescription = null,
-//////                        tint = Color(0xFFDFDFDF)
-//////                    )
-////                }
-////            }
+//fun MainContentPreview() {
+//    AppTheme {
+//        Scaffold(
+//            topBar = { AppBar() }
+//        ) {
+//            MainContent(
+//                amount = "₹ 100.00",  // Example static amount
+//                upiUrl = "upi://pay?pa=example@upi&pn=MerchantName&mc=1234&tid=12345&tr=1234567890&tn=Payment&am=100&cu=INR",
+//                modifier = Modifier.padding(it)
+//            )
 //        }
 //    }
 //}
-
-
-@Preview(showBackground = true)
-@Composable
-fun MainContentPreview() {
-    AppTheme {
-        Scaffold(
-//            topBar = { AppBar() }
-        ) {
-            MainContent(Modifier.padding(it))
-        }
-    }
-}

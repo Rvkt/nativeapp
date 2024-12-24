@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 
@@ -22,38 +23,45 @@ class PaymentHelper {
         upiAppPackage: String,
         upiPaymentLauncher: ActivityResultLauncher<Intent>
     ) {
-        // Construct the UPI payment URL
-        val upiPaymentUrl = buildUpiPaymentUrl(
-            payeeAddress = upiId,
-            payeeName = name,
-            merchantCode = "7322",
-            transactionId = txnId,
-            transactionReferenceId = txnId,
-            transactionNote = note,
-            amount = amount,
-            url = url
-        )
+        try {
+            // Construct the UPI payment URL
+            val upiPaymentUrl = buildUpiPaymentUrl(
+                payeeAddress = upiId,
+                payeeName = name,
+                merchantCode = "7322",
+                transactionId = txnId,
+                transactionReferenceId = txnId,
+                transactionNote = note,
+                amount = amount,
+                url = url
+            )
 
-        // Create an intent to launch the UPI app
-        val upiIntent = Intent(Intent.ACTION_VIEW, Uri.parse(upiPaymentUrl))
+            Log.d("UPI", "UPI Payment URL: $upiPaymentUrl")
 
-        // Set the UPI app package in the intent
-        upiIntent.setPackage(upiAppPackage)
+            // Create an intent to launch the UPI app
+            val upiIntent = Intent(Intent.ACTION_VIEW, Uri.parse(upiPaymentUrl))
 
-        // Check if the UPI app is available and launch it
-        val resolveInfo = context.packageManager.queryIntentActivities(upiIntent, 0)
-        if (resolveInfo.isNotEmpty()) {
-            // Launch UPI app using the ActivityResultLauncher
-            upiPaymentLauncher.launch(upiIntent)
-        } else {
+            // Set the UPI app package in the intent
+            upiIntent.setPackage(upiAppPackage)
 
-            // Launch the app store to install the app
-            launchAppInStore(context, upiAppPackage)
+            // Check if the UPI app is available and launch it
+            val resolveInfo = context.packageManager.queryIntentActivities(upiIntent, 0)
+            if (resolveInfo.isNotEmpty()) {
+                // Launch UPI app using the ActivityResultLauncher
+                upiPaymentLauncher.launch(upiIntent)
+            } else {
+                // Launch the app store to install the app
+                launchAppInStore(context, upiAppPackage)
 
-            // Show message if the specified UPI app is not found
-            Toast.makeText(context, "The specified UPI app is not installed", Toast.LENGTH_SHORT).show()
+                // Show message if the specified UPI app is not found
+                Toast.makeText(context, "The specified UPI app is not installed", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(context, "Failed to initiate UPI payment", Toast.LENGTH_SHORT).show()
         }
     }
+
 
     // Function to launch the app in the Play Store
     private fun launchAppInStore(context: Context, packageName: String) {
@@ -74,18 +82,19 @@ class PaymentHelper {
     ): String {
         return Uri.parse("upi://pay")
             .buildUpon()
-            .appendQueryParameter("pa", payeeAddress)  // Payee UPI ID
-            .appendQueryParameter("pn", payeeName)     // Payee Name
-            .appendQueryParameter("mc", merchantCode) // Merchant Code
-            .appendQueryParameter("tid", transactionId) // Transaction ID
-            .appendQueryParameter("tr", transactionReferenceId) // Transaction Reference ID
-            .appendQueryParameter("tn", transactionNote) // Transaction Note
-            .appendQueryParameter("am", amount) // Amount
-            .appendQueryParameter("cu", currency) // Currency
-            .appendQueryParameter("url", url) // URL
+            .appendQueryParameter("pa", Uri.encode(payeeAddress))  // Payee UPI ID
+            .appendQueryParameter("pn", Uri.encode(payeeName))     // Payee Name
+            .appendQueryParameter("mc", Uri.encode(merchantCode))  // Merchant Code
+            .appendQueryParameter("tid", Uri.encode(transactionId)) // Transaction ID
+            .appendQueryParameter("tr", Uri.encode(transactionReferenceId)) // Transaction Reference ID
+            .appendQueryParameter("tn", Uri.encode(transactionNote)) // Transaction Note
+            .appendQueryParameter("am", Uri.encode(amount)) // Amount
+            .appendQueryParameter("cu", Uri.encode(currency)) // Currency
+            .appendQueryParameter("url", Uri.encode(url)) // URL
             .build()
             .toString()
     }
+
 
 
 

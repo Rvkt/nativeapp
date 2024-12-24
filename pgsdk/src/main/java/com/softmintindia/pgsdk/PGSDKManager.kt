@@ -18,6 +18,9 @@ object PGSDKManager {
         context: Context,
         apiKey: String,
         deviceId: String,
+        companyName: String,
+        amount: String,
+        upiUrl: String,
         callback: (Boolean, String) -> Unit
     ) {
         if (apiKey.isBlank() || deviceId.isBlank()) {
@@ -48,11 +51,21 @@ object PGSDKManager {
             // Start PaymentActivity
             val intent = Intent(context, PaymentActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // Ensure activity starts correctly
+            intent.putExtra("COMPANY", companyName)
+            intent.putExtra("AMOUNT", amount)
+            intent.putExtra("UPI_URL", upiUrl)
             context.startActivity(intent)
+
 
         } catch (e: Exception) {
             Log.e("PGSDKManager", "Initialization error: ${e.message}", e)
             callback(false, "Initialization failed: ${e.message}")
+
+            // Start ErrorActivity on exception
+            val intent = Intent(context, ErrorActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // Ensure activity starts correctly
+            intent.putExtra("ERROR_MESSAGE", "Initialization failed: ${e.message}")
+            context.startActivity(intent)
         }
     }
 
