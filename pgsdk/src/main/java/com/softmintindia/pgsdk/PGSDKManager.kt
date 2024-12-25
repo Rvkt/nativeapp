@@ -145,7 +145,7 @@ object PGSDKManager {
                 val upiUrl = "upi://pay?pa=merchant@upi&pn=Merchant&mc=1234&tid=12345&url=https://example.com"
                 val qrService = true
                 val raiseRequest = true
-                val intentRequest = false
+                val intentRequest = true
 
                 // Simulate success response
                 withContext(Dispatchers.Main) {
