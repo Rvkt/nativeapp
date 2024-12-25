@@ -69,10 +69,7 @@ class MainActivity : ComponentActivity() {
                                     PGSDKManager.initialize(
                                         context = this@MainActivity,
                                         apiKey = "123456",
-                                        deviceId = deviceId,
-                                        companyName = "Softmint India Pvt. Ltd.",
                                         amount = "100.00", // Example amount
-                                        upiUrl = "upi://pay?pa=merchant@upi&pn=Merchant&mc=1234&tid=12345&url=https://example.com",
                                     ) { success, message ->
                                         if (success) {
                                             // Initialization successful, PaymentActivity will start automatically

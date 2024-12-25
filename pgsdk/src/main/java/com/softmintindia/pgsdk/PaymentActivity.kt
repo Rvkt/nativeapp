@@ -3,14 +3,18 @@ package com.softmintindia.pgsdk
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.graphics.Bitmap
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -20,6 +24,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
@@ -30,7 +35,9 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -41,13 +48,17 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.zxing.BarcodeFormat
@@ -56,15 +67,29 @@ import com.google.zxing.common.BitMatrix
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import com.softmintindia.pgsdk.ui.theme.AppTheme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.text.*
 
 
 class PaymentActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Retrieve the intent extras
         val companyName = intent.getStringExtra("COMPANY") ?: ""
         val amount = intent.getStringExtra("AMOUNT") ?: "0.00"
         val upiUrl = intent.getStringExtra("UPI_URL") ?: ""
+
+        // Retrieve the service flags
+        val qrService = intent.getBooleanExtra("QR_SERVICE", false)
+        val raiseRequest = intent.getBooleanExtra("RAISE_REQUEST", false)
+        val intentRequest = intent.getBooleanExtra("INTENT_REQUEST", false)
+
+//        Log.d(
+//            "PaymentActivity",
+//            "Company: $companyName, Amount: $amount, UPI URL: $upiUrl, QR Service: $qrService, Raise Request: $raiseRequest, Intent Request: $intentRequest"
+//        )
+
 
         enableEdgeToEdge()
         setContent {
@@ -78,6 +103,10 @@ class PaymentActivity : ComponentActivity() {
                         companyName = companyName,
                         amount = amount,
                         upiUrl = upiUrl,
+                        qrService = qrService,
+                        raiseRequest = raiseRequest,
+                        intentRequest = intentRequest,
+                        activity = this,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -113,7 +142,11 @@ fun MainContent(
     modifier: Modifier = Modifier,
     companyName: String,
     amount: String,
-    upiUrl: String
+    upiUrl: String,
+    qrService: Boolean,
+    raiseRequest: Boolean,
+    intentRequest: Boolean,
+    activity: ComponentActivity
 ) {
     Column(
         modifier = modifier
@@ -126,54 +159,127 @@ fun MainContent(
         verticalArrangement = Arrangement.Top
     ) {
 
-        MerchantDetailsHeader(
-            companyName = companyName,
-            amount = "₹ $amount",
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            MerchantDetailsHeader(
+                companyName = companyName,
+                amount = "₹ $amount",
+            )
+        }
 
-        QRExpansionTile( title = "Pay using QR", iconResourceId = R.drawable.ic_qrcode, upiId = upiUrl)
+        if (qrService) {
+            QRExpansionTile(
+                title = "Pay using QR",
+                iconResourceId = R.drawable.ic_qrcode,
+                showExpanded = remember { mutableStateOf( !raiseRequest && !intentRequest) },
+                upiId = upiUrl,
+                activity = activity
+            )
+        }
 
-        InputFieldWithSubmit(title = "Pay using UPI/VPA", iconResourceId = R.drawable.ic_qrcode)
+        if (raiseRequest) {
+            InputFieldWithSubmit(
+                title = "Pay using UPI/VPA",
+                iconResourceId = R.drawable.ic_qrcode
+            )
+        }
+
+
+        // todo: Add Row with app icon, app name, and right arrow
+        if (intentRequest) {
+            RecommendedUPIApps()
+            ExpansionTile(
+                title = "All Payment Options",
+                content = { visibleButtons ->
+                    ButtonList(visibleButtons = visibleButtons)
+                }
+            )
+        }
 
 //        Spacer(modifier = Modifier.height(24.dp))
-        // todo: Add Row with app icon, app name, and right arrow
-        RecommendedUPIApps()
-//        Spacer(modifier = Modifier.height(16.dp))
-
-
-        ExpansionTile(
-            title = "All Payment Options",
-            content = { visibleButtons ->
-                ButtonList(visibleButtons = visibleButtons)
-            }
-        )
-
-
-
-
-
-        Spacer(modifier = Modifier.height(24.dp))
         Button(
             onClick = { Log.d("ButtonClick", "Continue clicked") },
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(contentColor = Color(0xFF3F51B5)  ),
             modifier = Modifier
-                .height(64.dp)
-                .padding(horizontal = 16.dp)
+//                .height(64.dp)
+                .padding(16.dp).wrapContentHeight()
                 .fillMaxWidth()
         ) {
             Text(
+                modifier= Modifier.padding(8.dp),
                 text = "Continue",
                 fontSize = 20.sp,
                 color = Color.White,
                 fontWeight = FontWeight.Bold
             )
         }
+
+        // Powered by UPI
+//        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.weight(1f))
+
+
+
+
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 48.dp, vertical = 16.dp)
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.wrapContentWidth().wrapContentHeight()
+            ) {
+                Text(
+                    text = "POWERED BY",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                    textAlign = TextAlign.Center
+                )
+                Image(
+                    painter = painterResource(id = R.drawable.ic_upi),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillHeight,
+                    modifier = Modifier
+                        .heightIn(max = 24.dp)  // Limit the height of the image
+                        .padding(top = 4.dp)     // Padding between text and image
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))  // Add space between the two columns
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.wrapContentWidth()
+            ) {
+                Text(
+                    text = "TRANSACTION PARTNER",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                    textAlign = TextAlign.Center,
+                )
+                Image(
+                    painter = painterResource(id = R.drawable.ic_softmint),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillHeight,
+                    modifier = Modifier
+                        .heightIn(max = 24.dp)  // Limit the height of the image
+                        .padding(top = 4.dp)     // Padding between text and image
+                )
+            }
+        }
+
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MerchantDetailsHeader(companyName: String, amount: String) {
+    val currentDateTime = LocalDateTime.now()
+    val dateFormatter = DateTimeFormatter.ofPattern("d MMM, yyyy")
+    val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -188,14 +294,21 @@ fun MerchantDetailsHeader(companyName: String, amount: String) {
             modifier = Modifier
                 .size(96.dp)
                 .padding(0.dp)
-//                .clip(RoundedCornerShape(8.dp))
+                .clip(CircleShape)
                 .background(Color.White)
-//                .border(
-//                    width = 1.dp,
-//                    color = Color(0xFFFFFFFF),
-//                    shape = RoundedCornerShape(8.dp)
-//                )
-        )
+
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_default), // Replace with your image resource ID
+                contentDescription = "Your image description", // Provide an appropriate description
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.Center) // Align the image in the center of the Box
+                    .wrapContentSize() // The image will take only the space it needs
+            )
+        }
+
+
 
         Spacer(modifier = Modifier.width(24.dp))
 
@@ -207,17 +320,28 @@ fun MerchantDetailsHeader(companyName: String, amount: String) {
             Text(
                 text = companyName,
                 fontSize = 20.sp,
-                fontWeight = FontWeight.Normal,
+                fontWeight = FontWeight.Bold,
                 color = Color.White,
+                fontFamily = FontFamily.Serif,
                 textAlign = TextAlign.Start
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = amount,
                 fontSize = 24.sp,
+                fontFamily = FontFamily.SansSerif,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 textAlign = TextAlign.Start
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "${currentDateTime.format(timeFormatter)}  ${currentDateTime.format(dateFormatter)}",
+                fontSize = 16.sp,
+                fontFamily = FontFamily.SansSerif,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                textAlign = TextAlign.End
             )
 
         }
@@ -403,13 +527,33 @@ private fun generateQRCode(content: String): Bitmap? {
 }
 
 
-@SuppressLint("RememberReturnType")
+@SuppressLint("RememberReturnType", "DefaultLocale")
 @Composable
-fun QRExpansionTile(title: String, iconResourceId: Int, upiId: String) {
-    val expanded = remember { mutableStateOf(false) }
+fun QRExpansionTile(title: String, iconResourceId: Int, upiId: String, showExpanded: MutableState<Boolean>, activity: ComponentActivity) {
+
+
 
     // Generate the QR code bitmap
     val qrCodeBitmap = generateQRCode(upiId)
+
+    // State for the timer countdown
+    var timeLeft by remember { mutableStateOf(1 * 60 * 1000L) } // 5 minutes in milliseconds
+    var formattedTime by remember { mutableStateOf("01:00") }
+
+    // Timer countdown logic using LaunchedEffect
+    LaunchedEffect(key1 = timeLeft) {
+        if (timeLeft > 0) {
+            launch {
+                kotlinx.coroutines.delay(1000L)
+                timeLeft -= 1000L
+                formattedTime = String.format("%02d:%02d", timeLeft / 60000, (timeLeft % 60000) / 1000)
+            }
+        } else {
+            // Close the activity when time reaches zero
+            activity.finish()
+        }
+    }
+
 
     Column(modifier = Modifier
         .fillMaxWidth()
@@ -450,7 +594,7 @@ fun QRExpansionTile(title: String, iconResourceId: Int, upiId: String) {
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
-                        ) { expanded.value = !expanded.value }
+                        ) { showExpanded.value = !showExpanded.value }
                         .padding(start = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -459,7 +603,6 @@ fun QRExpansionTile(title: String, iconResourceId: Int, upiId: String) {
                         contentDescription = "$title Icon",
                         modifier = Modifier.size(24.dp)
                     )
-
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(
                         text = title,
@@ -470,21 +613,21 @@ fun QRExpansionTile(title: String, iconResourceId: Int, upiId: String) {
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    IconButton(onClick = { expanded.value = !expanded.value }) {
+                    IconButton(onClick = { showExpanded.value = !showExpanded.value }) {
                         Icon(
-                            imageVector = if (expanded.value) {
+                            imageVector = if (showExpanded.value) {
                                 Icons.Filled.KeyboardArrowUp
                             } else {
                                 Icons.Filled.KeyboardArrowDown
                             },
-                            tint = if (expanded.value) Color.Gray else LocalContentColor.current,
+                            tint = if (showExpanded.value) Color.Gray else LocalContentColor.current,
                             contentDescription = "Expand/Collapse"
                         )
                     }
                 }
 
                 // Content that expands or collapses
-                AnimatedVisibility(visible = expanded.value) {
+                AnimatedVisibility(visible = showExpanded.value) {
                     Column(
                         modifier = Modifier
                             .padding(top = 0.dp)
@@ -504,6 +647,15 @@ fun QRExpansionTile(title: String, iconResourceId: Int, upiId: String) {
                         }
                     }
                 }
+
+                // Timer Text below the QR code
+                Text(
+                    text = "Time remaining: $formattedTime",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(top = 16.dp)
+                )
             }
         }
     }
@@ -723,41 +875,233 @@ fun UPIValidationForm() {
             }
         }
 
+        Button(
+            onClick = {
+                showDialog = true // Show the confirmation dialog
+            },
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(contentColor = Color(0xFF3F51B5)),
+            modifier = Modifier
+                .height(64.dp)
+                .fillMaxWidth()
+                .focusRequester(submitButtonFocusRequester)
+        ) {
+            Text(
+                text = "TEST ALERT DIALOG",
+                fontSize = 20.sp,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
         // Display the dismissible alert dialog
         if (showDialog) {
-            DismissibleAlertDialog(onDismiss = { showDialog = false })
+//            DismissibleAlertDialog(onDismiss = { showDialog = false })
+            DismissibleAlertDialog(
+                onDismiss = { showDialog = false },
+                payingTo = "John Doe",
+                amount = "500",
+                companyName = "Clients Company's Name",
+                imageResource = R.drawable.ic_paytm
+            )
+
         }
     }
 }
 
 
 
+@SuppressLint("DefaultLocale")
 @Composable
-fun DismissibleAlertDialog(onDismiss: () -> Unit) {
-    var timeLeft by remember { mutableStateOf(60) } // 5 minutes in seconds
+fun DismissibleAlertDialog(
+    onDismiss: () -> Unit,
+    companyName: String,
+    payingTo: String,
+    amount: String,
+    imageResource: Int
+) {
+    var timeLeft by remember { mutableIntStateOf(60) } // 1 minute in seconds
 
     LaunchedEffect(Unit) {
         while (timeLeft > 0) {
             delay(1000L)
             timeLeft -= 1
         }
-        onDismiss() // Close dialog after 5 minutes
+        onDismiss() // Close dialog after 1 minute
     }
 
     AlertDialog(
+        containerColor = Color.White,
         onDismissRequest = { /* Do nothing to prevent dismissing on outside clicks */ },
-        title = { Text(text = "Confirm Payment") },
+        title = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
+                    .fillMaxWidth()
+            ) {
+                // Displaying the image at the top
+                Image(
+                    painter = painterResource(id = R.drawable.ic_softmint),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(bottom = 16.dp)
+                )
+
+                Text(
+                    text = companyName,
+                    style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp),
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Row containing "Paying to" and "Amount"
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .wrapContentHeight(),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Paying to",
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                        Text(
+                            text = payingTo,
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, fontSize = 16.sp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .wrapContentHeight(),
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Amount",
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                        Text(
+                            text = amount,
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, fontSize = 16.sp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                // Horizontal Divider
+                HorizontalDivider(
+                    modifier = Modifier
+                        .padding(top = 16.dp)
+                        .fillMaxWidth(),
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
+            }
+        },
         text = {
-            Text(
-                text = "Please make the payment using the UPI ID you entered. " +
-                        "This dialog will automatically close in ${timeLeft / 60}m ${timeLeft % 60}s."
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+                    .heightIn(min = 300.dp, max = 400.dp)
+            ) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = buildAnnotatedString {
+                        append("Please authorize payment of ")
+                        withStyle(style = SpanStyle(color = Color.Blue, fontWeight = FontWeight.Bold)) {
+                            append(amount) // Color the amount text
+                        }
+                        append(" on your UPI mobile app within:")
+                    },
+                    style = MaterialTheme.typography.headlineSmall.copy(fontSize = 16.sp),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Column for Minutes
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .padding(end = 16.dp)
+                            .weight(1f) // Distribute space evenly
+                    ) {
+                        Text(
+                            text = String.format("%02d", timeLeft / 60), // Remaining minutes
+                            style = MaterialTheme.typography.displayMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Minutes",
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+
+                    // Colon separator
+                    Text(
+                        text = ":",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    // Column for Seconds
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.weight(1f) // Distribute space evenly
+                    ) {
+                        Text(
+                            text = String.format("%02d", timeLeft % 60), // Remaining seconds
+                            style = MaterialTheme.typography.displayMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Seconds",
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                }
+
+                // Powered by UPI
+                Spacer(modifier = Modifier.weight(1f))
+
+                Text(
+                    text = "POWERED BY",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                    textAlign = TextAlign.Center
+                )
+                Image(
+                    painter = painterResource(id = R.drawable.ic_upi),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .wrapContentHeight()
+                        .fillMaxWidth()
+                )
+            }
         },
         confirmButton = { /* No confirm button */ },
         dismissButton = { /* No dismiss button */ },
         modifier = Modifier.clip(RoundedCornerShape(16.dp)) // Custom shape
     )
+
 }
+
+
 
 
 
