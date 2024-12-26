@@ -18,6 +18,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -95,32 +97,45 @@ class MainActivity : ComponentActivity() {
                                 Text("Go to Payment")
                             }
 
-                            Button(
-                                onClick = {
-                                    val successMessage = "Payment Successful"
-                                    showToast(this@MainActivity, successMessage)
-                                    val intent = Intent(this@MainActivity, PaymentSuccessActivity::class.java)
-                                    intent.putExtra("SUCCESS_MESSAGE", successMessage)
-                                    this@MainActivity.startActivity(intent)
-                                },
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
-                            ) {
-                                Text(text = "Simulate Payment Success")
+                            Row (
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ){
+                                Button(
+                                    onClick = {
+                                        val successMessage = "Payment Successful"
+                                        showToast(this@MainActivity, successMessage)
+                                        val intent = Intent(this@MainActivity, PaymentSuccessActivity::class.java)
+                                        intent.putExtra("SUCCESS_MESSAGE", successMessage)
+                                        this@MainActivity.startActivity(intent)
+                                    },
+                                    modifier = Modifier
+                                        .padding(vertical = 8.dp)
+                                        .weight(1f)
+                                ) {
+                                    Text(text = "Payment Success")
+                                }
+                                Spacer(modifier = Modifier.width(16.dp))
+
+                                // Button for failure
+                                Button(
+                                    onClick = {
+                                        val failureMessage = "Payment Failed"
+                                        showToast(this@MainActivity, failureMessage)
+                                        val intent = Intent(this@MainActivity, PaymentFailedActivity::class.java)
+                                        intent.putExtra("FAILURE_MESSAGE", failureMessage)
+                                        this@MainActivity.startActivity(intent)
+                                    },
+                                    modifier = Modifier
+                                        .padding(vertical = 8.dp)
+                                        .weight(1f)
+                                ) {
+                                    Text(text = "Payment Failure")
+                                }
                             }
 
-                            // Button for failure
-                            Button(
-                                onClick = {
-                                    val failureMessage = "Payment Failed"
-                                    showToast(this@MainActivity, failureMessage)
-                                    val intent = Intent(this@MainActivity, PaymentFailedActivity::class.java)
-                                    intent.putExtra("FAILURE_MESSAGE", failureMessage)
-                                    this@MainActivity.startActivity(intent)
-                                },
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
-                            ) {
-                                Text(text = "Simulate Payment Failure")
-                            }
+
                             InstalledAppsList() // Installed apps list will be below the
 
                         }
@@ -163,10 +178,22 @@ fun InstalledAppsList() {
                         val intent = packageManager.getLaunchIntentForPackage(appInfo.packageName)
                         if (intent != null) {
                             context.startActivity(intent)
-                            Log.d("InstalledAppsList", "Launching app: ${appInfo.loadLabel(packageManager)} (${appInfo.packageName})")
+                            Log.d(
+                                "InstalledAppsList",
+                                "Launching app: ${appInfo.loadLabel(packageManager)} (${appInfo.packageName})"
+                            )
                         } else {
-                            Toast.makeText(context, "Unable to launch ${appInfo.loadLabel(packageManager)}", Toast.LENGTH_SHORT).show()
-                            Log.d("InstalledAppsList", "Failed to launch app: ${appInfo.packageName}")
+                            Toast
+                                .makeText(
+                                    context,
+                                    "Unable to launch ${appInfo.loadLabel(packageManager)}",
+                                    Toast.LENGTH_SHORT
+                                )
+                                .show()
+                            Log.d(
+                                "InstalledAppsList",
+                                "Failed to launch app: ${appInfo.packageName}"
+                            )
                         }
                     }
                     .padding(8.dp), // Add some padding around the card
@@ -247,7 +274,9 @@ fun PaymentResultScreen(context: Context) {
                 intent.putExtra("SUCCESS_MESSAGE", successMessage)
                 context.startActivity(intent)
             },
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
         ) {
             Text(text = "Simulate Payment Success")
         }
@@ -261,7 +290,9 @@ fun PaymentResultScreen(context: Context) {
                 intent.putExtra("FAILURE_MESSAGE", failureMessage)
                 context.startActivity(intent)
             },
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
         ) {
             Text(text = "Simulate Payment Failure")
         }
