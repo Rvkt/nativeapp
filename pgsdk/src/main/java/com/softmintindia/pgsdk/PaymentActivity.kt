@@ -2,7 +2,12 @@ package com.softmintindia.pgsdk
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -29,9 +34,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -48,6 +55,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -72,6 +81,7 @@ import kotlin.text.*
 
 
 class PaymentActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -97,8 +107,10 @@ class PaymentActivity : ComponentActivity() {
                 Scaffold(
                     containerColor = Color(0xFF3F51B5),
                     modifier = Modifier.fillMaxSize(),
-                    topBar = { AppBar() }
-                ) { innerPadding ->
+//                    topBar = { AppBar(companyName, amount) }
+                    topBar = { LargeTopAppBarExample() }
+                )
+                { innerPadding ->
                     MainContent(
                         companyName = companyName,
                         amount = amount,
@@ -117,20 +129,167 @@ class PaymentActivity : ComponentActivity() {
 
 
 
+//@RequiresApi(Build.VERSION_CODES.O)
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun AppBar(companyName: String, amount: String) {
+//    TopAppBar(
+//        windowInsets = TopAppBarDefaults.windowInsets,
+////        scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(),
+//        title = {
+//            val currentDateTime = LocalDateTime.now()
+//            val dateFormatter = DateTimeFormatter.ofPattern("d MMM, yyyy")
+//            val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
+//
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(180.dp)
+//                    .background(Color(0xFF3F51B5))
+//                    .padding(top = 16.dp), // Optional padding
+//                verticalAlignment = Alignment.Top,
+//                horizontalArrangement = Arrangement.Start, // Align items to the start
+//            ) {
+//                // White square on the left side of the title
+//                Box(
+//                    modifier = Modifier
+//                        .size(96.dp)
+//                        .padding(0.dp)
+//                        .clip(CircleShape)
+//                        .background(Color.White)
+//
+//                ) {
+//                    Image(
+//                        painter = painterResource(id = R.drawable.ic_default), // Replace with your image resource ID
+//                        contentDescription = "Your image description", // Provide an appropriate description
+//                        modifier = Modifier
+//                            .padding(16.dp)
+//                            .align(Alignment.Center) // Align the image in the center of the Box
+//                            .wrapContentSize() // The image will take only the space it needs
+//                    )
+//                }
+//
+//
+//
+//                Spacer(modifier = Modifier.width(24.dp))
+//
+//                // Column to hold the company name and amount
+//                Column(
+//                    verticalArrangement = Arrangement.Top,
+//                    horizontalAlignment = Alignment.Start
+//                ) {
+//                    Text(
+//                        text = companyName,
+//                        fontSize = 20.sp,
+//                        fontWeight = FontWeight.Bold,
+//                        color = Color.White,
+//                        fontFamily = FontFamily.Serif,
+//                        textAlign = TextAlign.Start
+//                    )
+//                    Spacer(modifier = Modifier.height(8.dp))
+//                    Text(
+//                        text = amount,
+//                        fontSize = 24.sp,
+//                        fontFamily = FontFamily.SansSerif,
+//                        fontWeight = FontWeight.Bold,
+//                        color = Color.White,
+//                        textAlign = TextAlign.Start
+//                    )
+//                    Spacer(modifier = Modifier.height(8.dp))
+//                    Text(
+//                        text = "${currentDateTime.format(timeFormatter)}  ${currentDateTime.format(dateFormatter)}",
+//                        fontSize = 16.sp,
+//                        fontFamily = FontFamily.SansSerif,
+//                        fontWeight = FontWeight.Bold,
+//                        color = Color.White,
+//                        textAlign = TextAlign.End
+//                    )
+//
+//                }
+//            }
+//        },
+//        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+//            containerColor = Color(0xFF3F51B5), // AppBar background color
+//            titleContentColor = Color.White    // Title text color
+//        ),
+//        modifier = Modifier.height(200.dp) // Change the height here
+//    )
+//}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppBar() {
+fun LargeTopAppBarExample() {
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+
     TopAppBar(
-        title = {
-            // You can add content inside the title if needed
-        },
-        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = Color(0xFF3F51B5), // AppBar background color
-            titleContentColor = Color.White    // Title text color
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color(0xFF3F51B5),
+            titleContentColor = Color.White,
         ),
-        modifier = Modifier.height(24.dp) // Change the height here
+        title = {
+            Row(
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                // Image on the left
+                Box(
+                    modifier = Modifier
+                        .size(54.dp)
+                        .padding(0.dp)
+                        .wrapContentSize()
+                        .clip(RoundedCornerShape(4.dp)) // Round the corners by 4 dp
+                        .background(Color.White)
+                        .border(0.dp, Color(0xFFADD8E6), RoundedCornerShape(4.dp)) // Add light blue border with rounded corners
+                )
+                {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_default), // Replace with your image resource ID
+                        contentDescription = "Your image description", // Provide an appropriate description
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .align(Alignment.Center) // Align the image in the center of the Box
+                            .wrapContentSize() // The image will take only the space it needs
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+
+                Column (
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.Start
+                ){
+//                    Text(
+//                        text = "Large Top App Bar",
+//                        maxLines = 1,
+//                        overflow = TextOverflow.Ellipsis,
+//                        style = MaterialTheme.typography.titleMedium
+//                    )
+
+                    Text(
+                        text = "Softmint India Pvt. Ltd.",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        fontFamily = FontFamily.Serif,
+                        textAlign = TextAlign.Start
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp)) // Add spacing between the title and amount
+                    // Amount Text
+                    Text(
+                        text = "₹ 123",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black),
+                        color = Color.White
+                    )
+                }
+
+            }
+        },
+        scrollBehavior = scrollBehavior
     )
 }
+
 
 
 
@@ -159,13 +318,6 @@ fun MainContent(
         verticalArrangement = Arrangement.Top
     ) {
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            MerchantDetailsHeader(
-                companyName = companyName,
-                amount = "₹ $amount",
-            )
-        }
-
         if (qrService) {
             QRExpansionTile(
                 title = "Pay using QR",
@@ -187,11 +339,11 @@ fun MainContent(
         // todo: Add Row with app icon, app name, and right arrow
         if (intentRequest) {
             RecommendedUPIApps()
-            ExpansionTile(
-                title = "All Payment Options",
-                content = { visibleButtons ->
-                    ButtonList(visibleButtons = visibleButtons)
-                }
+            InstalledUpiAppsExpansionTile(
+                title = "Installed Payment Options",
+//                content = { visibleButtons ->
+//                    ButtonList(visibleButtons = visibleButtons)
+//                }
             )
         }
 
@@ -202,7 +354,8 @@ fun MainContent(
             colors = ButtonDefaults.buttonColors(contentColor = Color(0xFF3F51B5)  ),
             modifier = Modifier
 //                .height(64.dp)
-                .padding(16.dp).wrapContentHeight()
+                .padding(16.dp)
+                .wrapContentHeight()
                 .fillMaxWidth()
         ) {
             Text(
@@ -231,7 +384,9 @@ fun MainContent(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.wrapContentWidth().wrapContentHeight()
+                modifier = Modifier
+                    .wrapContentWidth()
+                    .wrapContentHeight()
             ) {
                 Text(
                     text = "POWERED BY",
@@ -273,80 +428,84 @@ fun MainContent(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun MerchantDetailsHeader(companyName: String, amount: String) {
-    val currentDateTime = LocalDateTime.now()
-    val dateFormatter = DateTimeFormatter.ofPattern("d MMM, yyyy")
-    val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .background(Color(0xFF3F51B5))
-            .padding(16.dp), // Optional padding
-        verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.Start, // Align items to the start
-    ) {
-        // White square on the left side of the title
-        Box(
-            modifier = Modifier
-                .size(96.dp)
-                .padding(0.dp)
-                .clip(CircleShape)
-                .background(Color.White)
-
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_default), // Replace with your image resource ID
-                contentDescription = "Your image description", // Provide an appropriate description
-                modifier = Modifier
-                    .padding(16.dp)
-                    .align(Alignment.Center) // Align the image in the center of the Box
-                    .wrapContentSize() // The image will take only the space it needs
-            )
-        }
-
-
-
-        Spacer(modifier = Modifier.width(24.dp))
-
-        // Column to hold the company name and amount
-        Column(
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start
-        ) {
-            Text(
-                text = companyName,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                fontFamily = FontFamily.Serif,
-                textAlign = TextAlign.Start
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = amount,
-                fontSize = 24.sp,
-                fontFamily = FontFamily.SansSerif,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                textAlign = TextAlign.Start
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "${currentDateTime.format(timeFormatter)}  ${currentDateTime.format(dateFormatter)}",
-                fontSize = 16.sp,
-                fontFamily = FontFamily.SansSerif,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                textAlign = TextAlign.End
-            )
-
-        }
-    }
-}
+//@RequiresApi(Build.VERSION_CODES.O)
+//@Composable
+//fun MerchantDetailsHeader(companyName: String, amount: String) {
+//    val currentDateTime = LocalDateTime.now()
+//    val dateFormatter = DateTimeFormatter.ofPattern("d MMM, yyyy")
+//    val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
+//
+//    Row(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .wrapContentHeight()
+//            .background(Color(0xFF3F51B5))
+//            .padding(16.dp), // Optional padding
+//        verticalAlignment = Alignment.Top,
+//        horizontalArrangement = Arrangement.Start, // Align items to the start
+//    ) {
+//        // White square on the left side of the title
+//        Box(
+//            modifier = Modifier
+//                .size(96.dp)
+//                .padding(0.dp)
+//                .clip(CircleShape)
+//                .background(Color.White)
+//
+//        ) {
+//            Image(
+//                painter = painterResource(id = R.drawable.ic_default), // Replace with your image resource ID
+//                contentDescription = "Your image description", // Provide an appropriate description
+//                modifier = Modifier
+//                    .padding(16.dp)
+//                    .align(Alignment.Center) // Align the image in the center of the Box
+//                    .wrapContentSize() // The image will take only the space it needs
+//            )
+//        }
+//
+//
+//
+//        Spacer(modifier = Modifier.width(24.dp))
+//
+//        // Column to hold the company name and amount
+//        Column(
+//            verticalArrangement = Arrangement.Top,
+//            horizontalAlignment = Alignment.Start
+//        ) {
+//            Text(
+//                text = companyName,
+//                fontSize = 20.sp,
+//                fontWeight = FontWeight.Bold,
+//                color = Color.White,
+//                fontFamily = FontFamily.Serif,
+//                textAlign = TextAlign.Start
+//            )
+//            Spacer(modifier = Modifier.height(8.dp))
+//            Text(
+//                text = amount,
+//                fontSize = 24.sp,
+//                fontFamily = FontFamily.SansSerif,
+//                fontWeight = FontWeight.Bold,
+//                color = Color.White,
+//                textAlign = TextAlign.Start
+//            )
+//            Spacer(modifier = Modifier.height(8.dp))
+//            Text(
+//                text = "${currentDateTime.format(timeFormatter)}  ${
+//                    currentDateTime.format(
+//                        dateFormatter
+//                    )
+//                }",
+//                fontSize = 16.sp,
+//                fontFamily = FontFamily.SansSerif,
+//                fontWeight = FontWeight.Bold,
+//                color = Color.White,
+//                textAlign = TextAlign.End
+//            )
+//
+//        }
+//    }
+//}
 
 
 
@@ -550,7 +709,7 @@ fun QRExpansionTile(title: String, iconResourceId: Int, upiId: String, showExpan
             }
         } else {
             // Close the activity when time reaches zero
-            activity.finish()
+//            activity.finish()
         }
     }
 
@@ -755,7 +914,6 @@ fun InputFieldWithSubmit(title: String, iconResourceId: Int) {
 
 }
 
-
 @Composable
 fun UPIValidationForm() {
     var upiId by remember { mutableStateOf("") }
@@ -908,7 +1066,6 @@ fun UPIValidationForm() {
         }
     }
 }
-
 
 
 @SuppressLint("DefaultLocale")
@@ -1112,39 +1269,54 @@ fun DismissibleAlertDialog(
 
 
 // TODO: expansion tile for the all payment options
+@SuppressLint("QueryPermissionsNeeded")
 @Composable
-fun ExpansionTile(title: String, content: @Composable (visibleButtons: List<String>) -> Unit) {
+fun InstalledUpiAppsExpansionTile(
+    title: String,
+    context: android.content.Context = LocalContext.current // Obtain the context from LocalContext
+) {
     var isExpanded by remember { mutableStateOf(false) }
+    val packageManager = context.packageManager
 
-    val buttonList = listOf(
-        "Google Pay", "Phone Pe", "Paytm", "Amazon Pay",
-        "MobiKwik", "FreeCharge", "WhatsApp Pay", "Bhim UPI",
-        "PhonePe UPI", "Google UPI",
-        "Apple Pay", "Samsung Pay", "PayPal", "Razorpay",
-        "JioMoney", "AirTel Payments", "HDFC Pay", "ICICI Pay",
-        "Kotak Pay", "SBI Pay", "Axis Pay", "Baroda Pay",
-        "Yono SBI", "Bajaj Pay", "Vodafone M-Pesa", "Ola Money",
-        "Zeta Pay", "Simpl Pay", "Ipay", "Cashfree Pay", "Pine Labs"
-    )
+    // Get the list of installed UPI apps
+    val installedUpiApps = remember {
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            data = Uri.parse("upi://pay")
+        }
 
+        // Retrieve apps that can handle the UPI intent
+        val activities = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
 
-    // Determine which buttons to show based on expansion state
-    val visibleButtons = if (isExpanded) buttonList else buttonList.take(4)
+        activities.mapNotNull { resolveInfo ->
+            val appInfo = resolveInfo.activityInfo?.applicationInfo
+            appInfo?.let {
+                Triple(
+                    appInfo.loadLabel(packageManager).toString(),
+                    appInfo.loadIcon(packageManager), // Get the app's icon
+                    resolveInfo.activityInfo.packageName // Add the app's package name for launching
+                )
+            }
+        }.sortedBy { it.first } // Sort by app name
+    }
 
-    Card(modifier = Modifier
-        .padding(horizontal = 16.dp)
-        .border(
-            width = 0.dp,
-            color = Color(0xFFE9E9E9),
-            shape = RoundedCornerShape(8.dp)
-        )
-        .padding(0.dp),
+    // Determine which apps to show based on the expansion state
+    val visibleApps = if (isExpanded) installedUpiApps else installedUpiApps.take(4)
+
+    // Card with expansion tile UI
+    Card(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .border(
+                width = 0.dp,
+                color = Color(0xFFE9E9E9),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(0.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp, focusedElevation = 0.dp),
         shape = RoundedCornerShape(8.dp), // Rounded corners for the card
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFFE8EAF6)
         )
-
     ) {
         Column(
             modifier = Modifier
@@ -1167,7 +1339,9 @@ fun ExpansionTile(title: String, content: @Composable (visibleButtons: List<Stri
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF3F51B5),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(bottom = 8.dp)
                 )
                 Icon(
                     imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
@@ -1176,15 +1350,99 @@ fun ExpansionTile(title: String, content: @Composable (visibleButtons: List<Stri
                 )
             }
 
-            if (isExpanded) {
-                Spacer(modifier = Modifier.height(4.dp))
+            if (visibleApps.isEmpty()) {
+                Text(
+                    text = "No UPI apps installed.",
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+            } else {
+                // Display installed UPI apps in rows (4 per row)
+                Column {
+                    visibleApps.chunked(4).forEach { rowButtons ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp), // Space between buttons
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            rowButtons.forEach { (appName, appIcon, packageName) ->
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier
+//                                        .weight(1f)
+                                        .padding(bottom = 16.dp)
+                                ) {
+                                    Button(
+                                        onClick = {
+                                            // Launch the app when tapped
+                                            try {
+                                                val intent = packageManager.getLaunchIntentForPackage(packageName)
+                                                intent?.let {
+                                                    context.startActivity(it)
+                                                }
+                                            } catch (e: Exception) {
+                                                // Handle any errors (app not found, etc.)
+                                                Toast.makeText(context, "Unable to open $appName", Toast.LENGTH_SHORT).show()
+                                            }
+                                        },
+                                        shape = RoundedCornerShape(64.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                                        modifier = Modifier
+                                            .padding(vertical = 0.dp)
+                                    ) {
+                                        // Display the actual app icon
+                                        val imageBitmap = try {
+                                            if (appIcon is BitmapDrawable) {
+                                                appIcon.bitmap.asImageBitmap()
+                                            } else {
+                                                // Convert non-bitmap drawable to bitmap
+                                                val bitmap = Bitmap.createBitmap(
+                                                    appIcon.intrinsicWidth,
+                                                    appIcon.intrinsicHeight,
+                                                    Bitmap.Config.ARGB_8888
+                                                )
+                                                val canvas = Canvas(bitmap)
+                                                appIcon.setBounds(0, 0, canvas.width, canvas.height)
+                                                appIcon.draw(canvas)
+                                                bitmap.asImageBitmap()
+                                            }
+                                        } catch (e: Exception) {
+                                            null // Handle cases where conversion fails
+                                        }
+
+                                        imageBitmap?.let {
+                                            Image(
+                                                painter = BitmapPainter(it),
+                                                contentDescription = "$appName Icon",
+                                                modifier = Modifier.size(40.dp)
+                                            )
+                                        }
+                                    }
+
+                                    // Display app name
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = appName,
+                                        fontSize = 12.sp,
+                                        maxLines = 2,
+                                        textAlign = TextAlign.Center,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.Black
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
-            content(visibleButtons)
         }
     }
-
-
 }
+
+
+
+
 
 @Composable
 fun ButtonList(visibleButtons: List<String>) {
@@ -1204,7 +1462,9 @@ fun ButtonList(visibleButtons: List<String>) {
                 rowButtons.forEach { button ->
                     Column (
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.weight(1f).padding(bottom = 16.dp)
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(bottom = 16.dp)
                     ){
 
                         Button(

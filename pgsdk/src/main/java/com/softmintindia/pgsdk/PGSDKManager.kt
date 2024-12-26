@@ -138,7 +138,7 @@ object PGSDKManager {
             // Simulate a network call
             withContext(Dispatchers.IO) {
                 // Simulated delay for network call
-                delay(2000) // Use delay instead of Thread.sleep to avoid blocking the thread
+                delay(5000) // Use delay instead of Thread.sleep to avoid blocking the thread
 
                 // Simulated API response
                 val companyName = "Softmint India Pvt. Ltd."

@@ -80,19 +80,22 @@ class PaymentHelper {
         currency: String = "INR",
         url: String
     ): String {
-        return Uri.parse("upi://pay")
-            .buildUpon()
-            .appendQueryParameter("pa", Uri.encode(payeeAddress))  // Payee UPI ID
-            .appendQueryParameter("pn", Uri.encode(payeeName))     // Payee Name
-            .appendQueryParameter("mc", Uri.encode(merchantCode))  // Merchant Code
-            .appendQueryParameter("tid", Uri.encode(transactionId)) // Transaction ID
-            .appendQueryParameter("tr", Uri.encode(transactionReferenceId)) // Transaction Reference ID
-            .appendQueryParameter("tn", Uri.encode(transactionNote)) // Transaction Note
-            .appendQueryParameter("am", Uri.encode(amount)) // Amount
-            .appendQueryParameter("cu", Uri.encode(currency)) // Currency
-            .appendQueryParameter("url", Uri.encode(url)) // URL
-            .build()
-            .toString()
+        return "upi://pay?pa=8757237359@ybl&pn=Ritesh&mc=4900&tid=rah67676868&tr=rah67676868&tn=test&am=10&cu=INR&mode=04&url=www.softmint.com"
+
+//        return Uri.parse("upi://pay")
+//            .buildUpon()
+//            .appendQueryParameter("pa", Uri.encode(payeeAddress))  // Payee UPI ID
+//            .appendQueryParameter("pn", Uri.encode(payeeName))     // Payee Name
+//            .appendQueryParameter("mc", Uri.encode(merchantCode))  // Merchant Code
+//            .appendQueryParameter("tid", Uri.encode(transactionId)) // Transaction ID
+//            .appendQueryParameter("tr", Uri.encode(transactionReferenceId)) // Transaction Reference ID
+//            .appendQueryParameter("tn", Uri.encode(transactionNote)) // Transaction Note
+//            .appendQueryParameter("am", Uri.encode(amount)) // Amount
+//            .appendQueryParameter("cu", Uri.encode(currency)) // Currency
+//            .appendQueryParameter("url", Uri.encode(url)) // URL
+//            .build()
+//            .toString()
+
     }
 
 
@@ -126,18 +129,46 @@ class PaymentHelper {
 
         when (responseCode?.uppercase()) {
             "SUCCESS" -> {
-                Toast.makeText(context, "Payment Successful", Toast.LENGTH_SHORT).show()
+                val successMessage = "Payment Successful"
+
+                // Show Toast for success
+                showToast(context, successMessage)
+
+                // Navigate to PaymentSuccessActivity and pass the success message
+                val intent = Intent(context, PaymentSuccessActivity::class.java)
+                intent.putExtra("SUCCESS_MESSAGE", successMessage)
+                context.startActivity(intent)
             }
             "FAILURE" -> {
-                Toast.makeText(context, "Payment Failed", Toast.LENGTH_SHORT).show()
+                val failureMessage = "Payment Failed"
+
+                // Show Toast for failure
+                showToast(context, failureMessage)
+
+                // Navigate to PaymentFailedActivity and pass the failure message
+                val intent = Intent(context, PaymentFailedActivity::class.java)
+                intent.putExtra("FAILURE_MESSAGE", failureMessage)
+                context.startActivity(intent)
             }
             "SUBMITTED" -> {
-                Toast.makeText(context, "Payment Pending", Toast.LENGTH_SHORT).show()
+                showToast(context, "Payment Pending")
+//                Toast.makeText(context, "Payment Pending", Toast.LENGTH_SHORT).show()
             }
             else -> {
-                Toast.makeText(context, "Payment Status Unknown", Toast.LENGTH_SHORT).show()
+                showToast(context, "Payment Status Unknown")
+//                Toast.makeText(context, "Payment Status Unknown", Toast.LENGTH_SHORT).show()
             }
+
+
         }
+        // Log the response for debugging purposes
+        Log.d("UPIResponse", "Response: $response")
+        Log.d("UPIResponse", "Parsed Map: $responseMap")
+    }
+
+    // Helper method to show toast messages
+    private fun showToast(context: Context, message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
 
 }
