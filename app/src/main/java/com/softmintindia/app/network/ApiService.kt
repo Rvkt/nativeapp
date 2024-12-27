@@ -11,6 +11,13 @@ interface ApiService {
     fun authenticateUser(
         @Header("deviceId") deviceId: String,
         @Header("Content-Type") contentType: String = "application/json",
-        @Body requestBody: Map<String, String>
+        @Body requestBody: Map<String, String>,
     ): Call<AuthenticationResponse>
+
+    @POST(ApiEndpoints.AUTHENTICATE_USER)
+    fun verifyUser(
+        @Header("deviceId") deviceId: String,
+        @Header("Content-Type") contentType: String = "application/json",
+        @Body requestBody: Map<String, String>,
+    ): Call<AuthenticatedResponse>
 }

@@ -25,6 +25,10 @@ import android.util.Log
 import android.view.Window
 import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.softmintindia.pgsdk.network.NetworkUtils
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -45,6 +49,7 @@ object PGSDKManager {
         context: Context,
         apiKey: String,
         amount: String,
+        remark: String,
         callback: (Boolean, String) -> Unit
     ) {
         if (apiKey.isBlank()) {
@@ -52,76 +57,91 @@ object PGSDKManager {
             return
         }
 
-        try {
-            // Save to memory
-            this.apiKey = apiKey
+        // Save to memory
+        this.apiKey = apiKey
 
-            // Optionally save to SharedPreferences for persistence
+        saveApiKeyToPreferences(context, apiKey)
+
+
+        // Show initialization dialog with progress
+        // showInitializationDialog(context)
+
+
+        // Launch coroutine for asynchronous tasks
+        launchInitializationCoroutine(context, apiKey, amount, callback)
+
+    }
+
+
+    private fun saveApiKeyToPreferences(context: Context, apiKey: String) {
+        // Use lifecycleScope if calling from an Activity or Fragment
+        val appContext = context.applicationContext
+
+        // Use lifecycleScope for activity/fragment to tie the coroutine to lifecycle
+        (context as? AppCompatActivity)?.lifecycleScope?.launch {
             val sharedPreferences: SharedPreferences =
-                context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+                appContext.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
             with(sharedPreferences.edit()) {
                 putString(KEY_API, apiKey)
-                apply()
+                apply() // apply asynchronously
             }
+        }
+    }
 
 
-            // Show initialization dialog with progress
-            showInitializationDialog(context)
+    private fun isNetworkConnected(context: Context): Boolean {
+        // Check network connection (modify as needed)
+        return NetworkUtils.isConnected(context)
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    private fun launchInitializationCoroutine(
+        context: Context,
+        apiKey: String,
+        amount: String,
+        callback: (Boolean, String) -> Unit
+    ) {
+        GlobalScope.launch(Dispatchers.Main) {
+            try {
+
+                if (!isNetworkConnected(context)) {
+                    callback(false, "No internet connection.")
+                    return@launch
+                }
 
 
-
-            // Launch a coroutine to handle the API call
-            GlobalScope.launch(Dispatchers.Main) {
                 val deviceId = getDeviceId(context)
                 Log.d("PGSDKManager", "Device ID: $deviceId")
 
-                // Call the API and process the response
-                callPaymentApi(context, apiKey, deviceId, amount) { success, companyName, upiUrl, qrService, raiseRequest, intentRequest, errorMessage ->
-                    if (success) {
+                // Call the payment API and handle the response
+                handlePaymentApiCall(context, apiKey, deviceId, amount, callback)
 
-                        // todo: Log success message
-                        Log.d("PGSDKManager", "Initialization successful. API Key: $apiKey, Device ID: $deviceId")
-
-
-                        // If API call is successful, pass data to PaymentActivity
-                        val intent = Intent(context, PaymentActivity::class.java)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // Ensure activity starts correctly
-                        intent.putExtra("COMPANY", companyName)
-                        intent.putExtra("AMOUNT", amount)
-                        intent.putExtra("UPI_URL", upiUrl)
-
-                        // Pass the boolean flags for the three services
-                        intent.putExtra("QR_SERVICE", qrService)
-                        intent.putExtra("RAISE_REQUEST", raiseRequest)
-                        intent.putExtra("INTENT_REQUEST", intentRequest)
-
-                        context.startActivity(intent)
-
-                        // Notify success
-                        callback(true, "Initialization and API call successful.")
-                    } else {
-                        // If API call fails, show error and pass to ErrorActivity
-                        Log.e("PGSDKManager", errorMessage)
-                        val intent = Intent(context, ErrorActivity::class.java)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // Ensure activity starts correctly
-                        intent.putExtra("ERROR_MESSAGE", errorMessage)
-                        context.startActivity(intent)
-
-                        // Notify failure
-                        callback(false, errorMessage)
-                    }
-                }
+            } catch (e: Exception) {
+                Log.e("PGSDKManager", "Initialization error: ${e.message}", e)
+                callback(false, "Initialization failed: ${e.message}")
             }
+        }
+    }
 
-        } catch (e: Exception) {
-            Log.e("PGSDKManager", "Initialization error: ${e.message}", e)
-            callback(false, "Initialization failed: ${e.message}")
-
-            // Start ErrorActivity on exception
-            val intent = Intent(context, ErrorActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // Ensure activity starts correctly
-            intent.putExtra("ERROR_MESSAGE", "Initialization failed: ${e.message}")
-            context.startActivity(intent)
+    private suspend fun handlePaymentApiCall(
+        context: Context,
+        apiKey: String,
+        deviceId: String,
+        amount: String,
+        callback: (Boolean, String) -> Unit
+    ) {
+        callPaymentApi(context, apiKey, deviceId, amount) { success, companyName, upiUrl, qrService, raiseRequest, intentRequest, errorMessage ->
+            if (success) {
+                Log.d("PGSDKManager", "Initialization successful.")
+                startPaymentActivity(context, companyName, amount, upiUrl,
+                    qrService, raiseRequest, intentRequest,
+                )
+                callback(true, "Initialization and API call successful.")
+            } else {
+                Log.e("PGSDKManager", errorMessage)
+                showErrorActivity(context, errorMessage)
+                callback(false, errorMessage)
+            }
         }
     }
 
@@ -138,7 +158,7 @@ object PGSDKManager {
             // Simulate a network call
             withContext(Dispatchers.IO) {
                 // Simulated delay for network call
-                delay(5000) // Use delay instead of Thread.sleep to avoid blocking the thread
+                delay(2000) // Use delay instead of Thread.sleep to avoid blocking the thread
 
                 // Simulated API response
                 val companyName = "Softmint India Pvt. Ltd."
@@ -149,8 +169,6 @@ object PGSDKManager {
 
                 // Simulate success response
                 withContext(Dispatchers.Main) {
-
-
                     // Pass the simulated data back to the callback
                     callback(true, companyName, upiUrl, qrService, raiseRequest, intentRequest, "")
                 }
@@ -164,6 +182,34 @@ object PGSDKManager {
             }
         }
     }
+
+    private fun startPaymentActivity(
+        context: Context,
+        companyName: String,
+        amount: String,
+        upiUrl: String,
+        qrService: Boolean,
+        raiseRequest: Boolean,
+        intentRequest: Boolean
+    ) {
+        val intent = Intent(context, PaymentActivity::class.java).apply {
+            putExtra("COMPANY", companyName)
+            putExtra("AMOUNT", amount)
+            putExtra("UPI_URL", upiUrl)
+            putExtra("QR_SERVICE", qrService)
+            putExtra("RAISE_REQUEST", raiseRequest)
+            putExtra("INTENT_REQUEST", intentRequest)
+        }
+        context.startActivity(intent)
+    }
+
+    private fun showErrorActivity(context: Context, errorMessage: String) {
+        val intent = Intent(context, ErrorActivity::class.java).apply {
+            putExtra("ERROR_MESSAGE", errorMessage)
+        }
+        context.startActivity(intent)
+    }
+
 
 
     // Show Initialization Dialog while API call is made
@@ -189,6 +235,7 @@ object PGSDKManager {
     fun getDeviceId(context: Context): String {
         return Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
     }
+
 
 
     // Retrieve API Key

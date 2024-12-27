@@ -1,10 +1,11 @@
-package com.softmintindia.pgsdk.network
+package com.softmintindia.app.network
 
+import com.softmintindia.pgsdk.network.ApiService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object ApiClient {
-    private const val BASE_URL = "https://api.example.com/"
+    private const val BASE_URL = "https://m.easyswift.in/"
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
