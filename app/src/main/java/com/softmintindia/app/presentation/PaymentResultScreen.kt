@@ -1,4 +1,4 @@
-package com.softmintindia.app
+package com.softmintindia.app.presentation
 
 import android.content.Context
 import android.content.Intent

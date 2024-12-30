@@ -9,4 +9,11 @@ class ApiRequests {
         val mode: String,
         val otp: String
     )
+
+    data class PgsdkInitRequest(
+        val amount: String,
+        val remark: String,
+        val identifier: String,
+        val orderId: String
+    )
 }

@@ -1,11 +1,10 @@
-package com.softmintindia.app.network
+package com.softmintindia.app.data
 
 
-import com.softmintindia.app.network.models.AuthenticatedResponse
-import com.softmintindia.app.network.models.CheckTxnStatusResponse
-import com.softmintindia.app.network.models.PgsdkInitRequest
-import com.softmintindia.app.network.models.PgsdkInitResponse
-import com.softmintindia.pgsdk.network.ApiEndpoints
+import com.softmintindia.app.domain.models.AuthenticatedResponse
+import com.softmintindia.app.domain.models.CheckTxnStatusResponse
+import com.softmintindia.app.domain.models.PgsdkInitRequest
+import com.softmintindia.app.domain.models.PgsdkInitResponse
 import com.softmintindia.pgsdk.network.models.*
 import retrofit2.Call
 import retrofit2.http.*
@@ -28,8 +27,9 @@ interface ApiService {
 
     @POST(ApiEndpoints.PGSDK_INITIALIZE)
     fun pgsdkInitialize(
-        @Header("deviceId") deviceId: String,
-        @Header("Content-Type") contentType: String = "application/json",
+//        @Header("deviceId") deviceId: String,
+//        @Header("Content-Type") contentType: String = "application/json",
+        @HeaderMap map: Map<String, String>,
         @Body requestBody: PgsdkInitRequest,
     ): Call<PgsdkInitResponse>
 

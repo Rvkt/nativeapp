@@ -6,7 +6,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitInstance {
 
     // Base URL for the API
-    private const val BASE_URL = "https://m.easyswift.in/"
+//    private const val BASE_URL = "https://m.easyswift.in/"
+    private const val BASE_URL = "http://192.168.1.31:8088/softmint-upi//"
 
     // Initialize the Retrofit instance
     private val retrofit: Retrofit by lazy {

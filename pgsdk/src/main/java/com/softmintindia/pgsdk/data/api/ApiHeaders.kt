@@ -19,4 +19,11 @@ object ApiHeaders {
             "Content-Type" to "application/json"
         )
     }
+
+    fun withToken(context: Context): Map<String, String> {
+        return mapOf(
+            "Authorization" to getDeviceId(context),
+            "Content-Type" to "application/json"
+        )
+    }
 }

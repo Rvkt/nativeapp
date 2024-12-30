@@ -1,4 +1,4 @@
-package com.softmintindia.app.network.models
+package com.softmintindia.pgsdk.domain
 
 data class CheckTxnStatusResponse(
     val status: Long,

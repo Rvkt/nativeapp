@@ -1,4 +1,4 @@
-package com.softmintindia.app.network
+package com.softmintindia.app.data
 
 class ApiRequests {
 

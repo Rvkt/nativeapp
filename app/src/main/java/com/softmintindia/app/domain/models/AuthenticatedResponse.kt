@@ -1,4 +1,4 @@
-package com.softmintindia.app.network.models
+package com.softmintindia.app.domain.models
 
 data class AuthenticatedResponse(
     val message: String,

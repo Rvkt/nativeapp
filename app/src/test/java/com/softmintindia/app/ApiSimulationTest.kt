@@ -1,5 +1,8 @@
 import com.softmintindia.app.network.models.*
-import com.softmintindia.app.network.ApiService
+import com.softmintindia.app.data.ApiService
+import com.softmintindia.app.domain.models.CheckTxnStatusResponse
+import com.softmintindia.app.domain.models.PgsdkInitRequest
+import com.softmintindia.app.domain.models.PgsdkInitResponse
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After

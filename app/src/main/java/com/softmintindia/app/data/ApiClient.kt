@@ -1,10 +1,11 @@
-package com.softmintindia.app.network
+package com.softmintindia.app.data
 
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object ApiClient {
-    private const val BASE_URL = "https://m.easyswift.in/"
+//    private const val BASE_URL = "https://m.easyswift.in/"
+    private const val BASE_URL = "http://192.168.1.31:8088/softmint-upi/"
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()

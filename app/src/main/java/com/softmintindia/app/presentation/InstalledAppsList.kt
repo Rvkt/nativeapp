@@ -1,4 +1,4 @@
-package com.softmintindia.app
+package com.softmintindia.app.presentation
 
 import android.annotation.SuppressLint
 import android.content.Intent

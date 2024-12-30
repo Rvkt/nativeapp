@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
@@ -27,14 +25,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.softmintindia.app.network.ApiCallback
-import com.softmintindia.app.network.ApiClient
-import com.softmintindia.app.network.models.AuthenticatedResponse
+import com.softmintindia.app.data.ApiCallback
+import com.softmintindia.app.data.ApiClient
+import com.softmintindia.app.domain.models.AuthenticatedResponse
 import com.softmintindia.app.ui.theme.AppTheme
-import com.softmintindia.pgsdk.PGSDKManager
 import com.softmintindia.pgsdk.PaymentFailedActivity
 import com.softmintindia.pgsdk.PaymentSuccessActivity
-import com.softmintindia.pgsdk.network.ApiHeaders
+import com.softmintindia.app.data.ApiHeaders
+import com.softmintindia.app.domain.models.PgsdkInitRequest
+import com.softmintindia.app.domain.models.PgsdkInitResponse
+import com.softmintindia.app.presentation.InstalledAppsList
+import com.softmintindia.app.presentation.showToast
 import com.softmintindia.pgsdk.network.models.AuthenticationResponse
 import retrofit2.Call
 import retrofit2.Callback
@@ -57,43 +58,81 @@ class MainActivity : ComponentActivity() {
                     ) {
                         // Use a Column to stack the button on top
                         Column(modifier = Modifier.fillMaxSize()) {
-                            Button(
-                                onClick = {
-                                    PGSDKManager.initialize(
-                                        context = this@MainActivity,
-                                        apiKey = "123456",
-                                        amount = "100.00",
-                                        remark = "SDK Initialization"
-                                    ) { success, message ->
-                                        if (success) {
-                                            // Initialization successful, PaymentActivity will start automatically
-                                            Log.d("MainActivity", message)
-                                            Toast.makeText(
-                                                this@MainActivity,
-                                                "Initialization successful",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        } else {
-                                            // Handle initialization failure
-                                            Log.e("MainActivity", message)
-                                            // Show a toast saying "Initialization failed"
-                                            Toast.makeText(
-                                                this@MainActivity,
-                                                "Initialization failed, $message",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    }
-                                },
-                                modifier = Modifier
-                                    .align(Alignment.CenterHorizontally)
-                                    .padding(16.dp)
-                            ) {
-                                Text("Go to Payment")
-                            }
+//                            Button(
+//                                onClick = {
+//                                    PGSDKManager.initialize(
+//                                        context = this@MainActivity,
+//                                        apiKey = "123456",
+//                                        amount = "100.00",
+//                                        remark = "SDK Initialization"
+//                                    ) { success, message ->
+//                                        if (success) {
+//                                            // Initialization successful, PaymentActivity will start automatically
+//                                            Log.d("MainActivity", message)
+//                                            Toast.makeText(
+//                                                this@MainActivity,
+//                                                "Initialization successful",
+//                                                Toast.LENGTH_SHORT
+//                                            ).show()
+//                                        } else {
+//                                            // Handle initialization failure
+//                                            Log.e("MainActivity", message)
+//                                            // Show a toast saying "Initialization failed"
+//                                            Toast.makeText(
+//                                                this@MainActivity,
+//                                                "Initialization failed, $message",
+//                                                Toast.LENGTH_SHORT
+//                                            ).show()
+//                                        }
+//                                    }
+//                                },
+//                                modifier = Modifier
+//                                    .align(Alignment.CenterHorizontally)
+//                                    .padding(16.dp)
+//                            ) {
+//                                Text("Go to Payment")
+//                            }
 
                             Button(
                                 onClick = {
+
+                                    this@MainActivity.initiateUpiTxn("100.00", "Initiate UPI Transaction", identifier = "TEST SDK", orderId = "TXN20241230174410");
+//                                    PGSDKManager.initialize(
+//                                        context = this@MainActivity,
+//                                        apiKey = "123456",
+//                                        amount = "100.00",
+//                                        remark = "SDK Initialization"
+//                                    ) { success, message ->
+//                                        if (success) {
+//                                            // Initialization successful, PaymentActivity will start automatically
+//                                            Log.d("MainActivity", message)
+//                                            Toast.makeText(
+//                                                this@MainActivity,
+//                                                "Initialization successful",
+//                                                Toast.LENGTH_SHORT
+//                                            ).show()
+//                                        } else {
+//                                            // Handle initialization failure
+//                                            Log.e("MainActivity", message)
+//                                            // Show a toast saying "Initialization failed"
+//                                            Toast.makeText(
+//                                                this@MainActivity,
+//                                                "Initialization failed, $message",
+//                                                Toast.LENGTH_SHORT
+//                                            ).show()
+//                                        }
+//                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth().padding(16.dp)
+                            ) {
+                                Text(
+                                    text = "Navigate to Payment",
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                            }
+
+                            LoginButtons(
+                                onLoginClick = {
                                     this@MainActivity.makePostApiCall(
                                         userName = "9999726418",
                                         password = "",
@@ -102,19 +141,7 @@ class MainActivity : ComponentActivity() {
                                         otp = ""
                                     )
                                 },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = "Login User",
-                                    modifier = Modifier.padding(16.dp)
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-
-                            Button(
-                                onClick = {
+                                onSubmitOtpClick = {
                                     this@MainActivity.submitOtp(
                                         userName = "9999726418",
                                         password = "",
@@ -122,78 +149,70 @@ class MainActivity : ComponentActivity() {
                                         mode = "VIA_MOBILE",
                                         otp = "111111"
                                     )
+                                }
+                            )
+
+
+
+
+
+
+
+                            PaymentButtons(
+                                onPaymentSuccess = {
+                                    val successMessage = "Payment Successful"
+                                    val failureMessage = "Payment Unsuccessful"
+                                    val payeeName = "John Doe" // Example payee name
+                                    val amount = "500" // Example amount
+                                    val date = "26 Dec, 2024" // Example date
+                                    val time = "10:30 AM" // Example time
+                                    val txnId = "TXN20241226" // Example transaction ID
+
+                                    // Show a toast message
+                                    showToast(this@MainActivity, successMessage)
+
+                                    // Create an intent to start PaymentSuccessActivity
+                                    val intent = Intent(
+                                        this@MainActivity,
+                                        PaymentSuccessActivity::class.java
+                                    ).apply {
+                                        putExtra("SUCCESS_MESSAGE", successMessage)
+                                        putExtra("PAYEE_NAME", payeeName)
+                                        putExtra("AMOUNT", amount)
+                                        putExtra("DATE", date)
+                                        putExtra("TIME", time)
+                                        putExtra("TXN_ID", txnId)
+                                    }
+
+                                    // Start the activity
+                                    this@MainActivity.startActivity(intent)
                                 },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = "Submit OTP",
-                                    modifier = Modifier.padding(16.dp)
-                                )
-                            }
+                                onPaymentFailure = {
+                                    val failureMessage = "Payment Failed"
+                                    val payeeName = "John Doe" // Example payee name
+                                    val amount = "500" // Example amount
+                                    val date = "26 Dec, 2024" // Example date
+                                    val time = "10:30 AM" // Example time
+                                    val txnId = "TXN20241226" // Example transaction ID
+                                    showToast(this@MainActivity, failureMessage)
 
+                                    // Create an intent to start PaymentSuccessActivity
+                                    val intent = Intent(
+                                        this@MainActivity,
+                                        PaymentFailedActivity::class.java
+                                    ).apply {
+                                        putExtra("SUCCESS_MESSAGE", failureMessage)
+                                        putExtra("PAYEE_NAME", payeeName)
+                                        putExtra("AMOUNT", amount)
+                                        putExtra("DATE", date)
+                                        putExtra("TIME", time)
+                                        putExtra("TXN_ID", txnId)
+                                    }
 
-
-                            Row(
-                                modifier = Modifier.padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                            ) {
-                                Button(
-                                    onClick = {
-                                        val successMessage = "Payment Successful"
-                                        val payeeName = "John Doe" // Example payee name
-                                        val amount = "500" // Example amount
-                                        val date = "26 Dec, 2024" // Example date
-                                        val time = "10:30 AM" // Example time
-                                        val txnId = "TXN20241226" // Example transaction ID
-
-                                        // Show a toast message
-                                        showToast(this@MainActivity, successMessage)
-
-                                        // Create an intent to start PaymentSuccessActivity
-                                        val intent = Intent(
-                                            this@MainActivity,
-                                            PaymentSuccessActivity::class.java
-                                        ).apply {
-                                            putExtra("SUCCESS_MESSAGE", successMessage)
-                                            putExtra("PAYEE_NAME", payeeName)
-                                            putExtra("AMOUNT", amount)
-                                            putExtra("DATE", date)
-                                            putExtra("TIME", time)
-                                            putExtra("TXN_ID", txnId)
-                                        }
-
-                                        // Start the activity
-                                        this@MainActivity.startActivity(intent)
-                                    },
-                                    modifier = Modifier
-                                        .padding(vertical = 8.dp)
-                                        .weight(1f)
-                                ) {
-                                    Text(text = "Payment Success")
+                                    this@MainActivity.startActivity(intent)
                                 }
+                            )
 
-                                Spacer(modifier = Modifier.width(16.dp))
-
-                                // Button for failure
-                                Button(
-                                    onClick = {
-                                        val failureMessage = "Payment Failed"
-                                        showToast(this@MainActivity, failureMessage)
-                                        val intent = Intent(
-                                            this@MainActivity,
-                                            PaymentFailedActivity::class.java
-                                        )
-                                        intent.putExtra("FAILURE_MESSAGE", failureMessage)
-                                        this@MainActivity.startActivity(intent)
-                                    },
-                                    modifier = Modifier
-                                        .padding(vertical = 8.dp)
-                                        .weight(1f)
-                                ) {
-                                    Text(text = "Payment Failure")
-                                }
-                            }
 
 //                            InstalledAppsList()
 
@@ -323,7 +342,127 @@ class MainActivity : ComponentActivity() {
             })
     }
 
+    private fun initiateUpiTxn(
+        amount: String,
+        remark: String,
+        identifier: String,
+        orderId: String,
+    ) {
+        // Request body map
+        val requestBody = PgsdkInitRequest(amount, remark, identifier, orderId);
+
+        val header = ApiHeaders.withToken(context = this@MainActivity)
+
+        val callback = ApiCallback<PgsdkInitResponse> { success, data, message ->
+            if (success) {
+                Log.d("Response", "Success: $data")
+
+                if (data != null) {
+                    if (data.status.toInt() == 6) {
+                        Log.d("ApiCallback", "makePostApiCall: ${data.message}")
+                    } else if (data.status.toInt() == 1) {
+                        Log.d("ApiCallback", "makePostApiCall Submit OTP: ${data.data}")
+                    }
+                }
+
+            } else {
+                Log.e("Error", "Failure: $message")
+            }
+        }
+
+
+        ApiClient.apiService.pgsdkInitialize(header, requestBody = requestBody)
+            .enqueue(object : Callback<PgsdkInitResponse> {
+                override fun onResponse(
+                    call: Call<PgsdkInitResponse>,
+                    response: Response<PgsdkInitResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        val responseBody = response.body()
+                        responseBody?.let {
+                            Log.d("Authenticate User", "\n$it")
+                            callback.onSuccess(it)
+                        }
+                    } else {
+                        callback.onError("Response unsuccessful: ${response.errorBody()?.string()}")
+                    }
+                }
+
+                override fun onFailure(call: Call<PgsdkInitResponse>, t: Throwable) {
+                    callback.onError("Network call failed: ${t.message}")
+                }
+            })
+    }
+
 }
+
+@Composable
+fun LoginButtons(
+    onLoginClick: () -> Unit,
+    onSubmitOtpClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Button(
+            onClick = onLoginClick,
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = "Login User",
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Button(
+            onClick = onSubmitOtpClick,
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = "Submit OTP",
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun PaymentButtons(
+    onPaymentSuccess: () -> Unit,
+    onPaymentFailure: () -> Unit
+) {
+    Row(
+        modifier = Modifier.padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Button(
+            onClick = onPaymentSuccess,
+            modifier = Modifier
+                .padding(vertical = 8.dp)
+                .weight(1f)
+        ) {
+            Text(text = "Payment Success")
+        }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Button(
+            onClick = onPaymentFailure,
+            modifier = Modifier
+                .padding(vertical = 8.dp)
+                .weight(1f)
+        ) {
+            Text(text = "Payment Failure")
+        }
+    }
+}
+
+
 
 
 @Preview(showBackground = true)

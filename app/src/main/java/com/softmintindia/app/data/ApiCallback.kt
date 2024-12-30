@@ -1,6 +1,4 @@
-package com.softmintindia.app.network
-
-import com.softmintindia.pgsdk.network.models.AuthenticationResponse
+package com.softmintindia.app.data
 
 // Changed fun interface to a regular interface or abstract class to allow default behavior
 fun interface ApiCallback<T> {

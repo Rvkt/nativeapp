@@ -1,4 +1,4 @@
-package com.softmintindia.pgsdk.network
+package com.softmintindia.app.data
 
 import android.content.Context
 import android.net.ConnectivityManager

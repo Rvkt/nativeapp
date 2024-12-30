@@ -1,4 +1,4 @@
-package com.softmintindia.pgsdk.network
+package com.softmintindia.app.domain.models
 
 data class ResponseModel(
     val field1: String,
