@@ -57,6 +57,11 @@ dependencies {
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
     implementation ("com.squareup.retrofit2:converter-moshi:2.4.0")
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    testImplementation("com.squareup.okhttp3:okhttp:4.11.0")
+
+        testImplementation ("com.squareup.okhttp3:mockwebserver:4.9.0")  // or a newer version
+        testImplementation ("org.mockito:mockito-core:3.11.2") // Optional for mocking responses
+
 
 
     implementation(project(":pgsdk"))
@@ -70,6 +75,9 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.benchmark.macro)
     testImplementation(libs.junit)
+    testImplementation(libs.mockwebserver) // Check for the latest version
+
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

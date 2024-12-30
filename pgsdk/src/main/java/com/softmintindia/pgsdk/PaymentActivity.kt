@@ -11,8 +11,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -27,19 +25,48 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -56,7 +83,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -77,7 +103,6 @@ import com.journeyapps.barcodescanner.BarcodeEncoder
 import com.softmintindia.pgsdk.ui.theme.AppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.text.*
 
 
 class PaymentActivity : ComponentActivity() {
@@ -102,13 +127,19 @@ class PaymentActivity : ComponentActivity() {
 
 
         enableEdgeToEdge()
+
+//        Handler(Looper.getMainLooper()).postDelayed({
+//            finish() // Close the activity after 5 minutes
+//        }, 300000) // 5 minutes in milliseconds
+
+
         setContent {
             AppTheme {
                 Scaffold(
                     containerColor = Color(0xFF3F51B5),
                     modifier = Modifier.fillMaxSize(),
 //                    topBar = { AppBar(companyName, amount) }
-                    topBar = { LargeTopAppBarExample() }
+                    topBar = { LargeTopAppBar(companyName, amount) }
                 )
                 { innerPadding ->
                     MainContent(
@@ -128,97 +159,9 @@ class PaymentActivity : ComponentActivity() {
 }
 
 
-
-//@RequiresApi(Build.VERSION_CODES.O)
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun AppBar(companyName: String, amount: String) {
-//    TopAppBar(
-//        windowInsets = TopAppBarDefaults.windowInsets,
-////        scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(),
-//        title = {
-//            val currentDateTime = LocalDateTime.now()
-//            val dateFormatter = DateTimeFormatter.ofPattern("d MMM, yyyy")
-//            val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
-//
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(180.dp)
-//                    .background(Color(0xFF3F51B5))
-//                    .padding(top = 16.dp), // Optional padding
-//                verticalAlignment = Alignment.Top,
-//                horizontalArrangement = Arrangement.Start, // Align items to the start
-//            ) {
-//                // White square on the left side of the title
-//                Box(
-//                    modifier = Modifier
-//                        .size(96.dp)
-//                        .padding(0.dp)
-//                        .clip(CircleShape)
-//                        .background(Color.White)
-//
-//                ) {
-//                    Image(
-//                        painter = painterResource(id = R.drawable.ic_default), // Replace with your image resource ID
-//                        contentDescription = "Your image description", // Provide an appropriate description
-//                        modifier = Modifier
-//                            .padding(16.dp)
-//                            .align(Alignment.Center) // Align the image in the center of the Box
-//                            .wrapContentSize() // The image will take only the space it needs
-//                    )
-//                }
-//
-//
-//
-//                Spacer(modifier = Modifier.width(24.dp))
-//
-//                // Column to hold the company name and amount
-//                Column(
-//                    verticalArrangement = Arrangement.Top,
-//                    horizontalAlignment = Alignment.Start
-//                ) {
-//                    Text(
-//                        text = companyName,
-//                        fontSize = 20.sp,
-//                        fontWeight = FontWeight.Bold,
-//                        color = Color.White,
-//                        fontFamily = FontFamily.Serif,
-//                        textAlign = TextAlign.Start
-//                    )
-//                    Spacer(modifier = Modifier.height(8.dp))
-//                    Text(
-//                        text = amount,
-//                        fontSize = 24.sp,
-//                        fontFamily = FontFamily.SansSerif,
-//                        fontWeight = FontWeight.Bold,
-//                        color = Color.White,
-//                        textAlign = TextAlign.Start
-//                    )
-//                    Spacer(modifier = Modifier.height(8.dp))
-//                    Text(
-//                        text = "${currentDateTime.format(timeFormatter)}  ${currentDateTime.format(dateFormatter)}",
-//                        fontSize = 16.sp,
-//                        fontFamily = FontFamily.SansSerif,
-//                        fontWeight = FontWeight.Bold,
-//                        color = Color.White,
-//                        textAlign = TextAlign.End
-//                    )
-//
-//                }
-//            }
-//        },
-//        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-//            containerColor = Color(0xFF3F51B5), // AppBar background color
-//            titleContentColor = Color.White    // Title text color
-//        ),
-//        modifier = Modifier.height(200.dp) // Change the height here
-//    )
-//}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LargeTopAppBarExample() {
+fun LargeTopAppBar(companyName: String, amount: String) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
     TopAppBar(
@@ -239,7 +182,11 @@ fun LargeTopAppBarExample() {
                         .wrapContentSize()
                         .clip(RoundedCornerShape(4.dp)) // Round the corners by 4 dp
                         .background(Color.White)
-                        .border(0.dp, Color(0xFFADD8E6), RoundedCornerShape(4.dp)) // Add light blue border with rounded corners
+                        .border(
+                            0.dp,
+                            Color(0xFFADD8E6),
+                            RoundedCornerShape(4.dp)
+                        ) // Add light blue border with rounded corners
                 )
                 {
                     Image(
@@ -255,19 +202,12 @@ fun LargeTopAppBarExample() {
                 Spacer(modifier = Modifier.width(16.dp))
 
 
-                Column (
+                Column(
                     verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.Start
-                ){
-//                    Text(
-//                        text = "Large Top App Bar",
-//                        maxLines = 1,
-//                        overflow = TextOverflow.Ellipsis,
-//                        style = MaterialTheme.typography.titleMedium
-//                    )
-
+                ) {
                     Text(
-                        text = "Softmint India Pvt. Ltd.",
+                        text = companyName,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
@@ -278,8 +218,11 @@ fun LargeTopAppBarExample() {
                     Spacer(modifier = Modifier.height(4.dp)) // Add spacing between the title and amount
                     // Amount Text
                     Text(
-                        text = "₹ 123",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black),
+                        text = "₹ $amount",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            fontFamily = FontFamily.SansSerif
+                        ),
                         color = Color.White
                     )
                 }
@@ -289,11 +232,6 @@ fun LargeTopAppBarExample() {
         scrollBehavior = scrollBehavior
     )
 }
-
-
-
-
-
 
 
 @Composable
@@ -322,7 +260,7 @@ fun MainContent(
             QRExpansionTile(
                 title = "Pay using QR",
                 iconResourceId = R.drawable.ic_qrcode,
-                showExpanded = remember { mutableStateOf( !raiseRequest && !intentRequest) },
+                showExpanded = remember { mutableStateOf(!raiseRequest && !intentRequest) },
                 upiId = upiUrl,
                 activity = activity
             )
@@ -331,7 +269,7 @@ fun MainContent(
         if (raiseRequest) {
             InputFieldWithSubmit(
                 title = "Pay using UPI/VPA",
-                iconResourceId = R.drawable.ic_qrcode
+                iconResourceId = R.drawable.ic_bhimupi
             )
         }
 
@@ -351,7 +289,7 @@ fun MainContent(
         Button(
             onClick = { Log.d("ButtonClick", "Continue clicked") },
             shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(contentColor = Color(0xFF3F51B5)  ),
+            colors = ButtonDefaults.buttonColors(contentColor = Color(0xFF3F51B5)),
             modifier = Modifier
 //                .height(64.dp)
                 .padding(16.dp)
@@ -359,7 +297,7 @@ fun MainContent(
                 .fillMaxWidth()
         ) {
             Text(
-                modifier= Modifier.padding(8.dp),
+                modifier = Modifier.padding(8.dp),
                 text = "Continue",
                 fontSize = 20.sp,
                 color = Color.White,
@@ -370,8 +308,6 @@ fun MainContent(
         // Powered by UPI
 //        Spacer(modifier = Modifier.height(32.dp))
         Spacer(modifier = Modifier.weight(1f))
-
-
 
 
 
@@ -428,86 +364,6 @@ fun MainContent(
     }
 }
 
-//@RequiresApi(Build.VERSION_CODES.O)
-//@Composable
-//fun MerchantDetailsHeader(companyName: String, amount: String) {
-//    val currentDateTime = LocalDateTime.now()
-//    val dateFormatter = DateTimeFormatter.ofPattern("d MMM, yyyy")
-//    val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
-//
-//    Row(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .wrapContentHeight()
-//            .background(Color(0xFF3F51B5))
-//            .padding(16.dp), // Optional padding
-//        verticalAlignment = Alignment.Top,
-//        horizontalArrangement = Arrangement.Start, // Align items to the start
-//    ) {
-//        // White square on the left side of the title
-//        Box(
-//            modifier = Modifier
-//                .size(96.dp)
-//                .padding(0.dp)
-//                .clip(CircleShape)
-//                .background(Color.White)
-//
-//        ) {
-//            Image(
-//                painter = painterResource(id = R.drawable.ic_default), // Replace with your image resource ID
-//                contentDescription = "Your image description", // Provide an appropriate description
-//                modifier = Modifier
-//                    .padding(16.dp)
-//                    .align(Alignment.Center) // Align the image in the center of the Box
-//                    .wrapContentSize() // The image will take only the space it needs
-//            )
-//        }
-//
-//
-//
-//        Spacer(modifier = Modifier.width(24.dp))
-//
-//        // Column to hold the company name and amount
-//        Column(
-//            verticalArrangement = Arrangement.Top,
-//            horizontalAlignment = Alignment.Start
-//        ) {
-//            Text(
-//                text = companyName,
-//                fontSize = 20.sp,
-//                fontWeight = FontWeight.Bold,
-//                color = Color.White,
-//                fontFamily = FontFamily.Serif,
-//                textAlign = TextAlign.Start
-//            )
-//            Spacer(modifier = Modifier.height(8.dp))
-//            Text(
-//                text = amount,
-//                fontSize = 24.sp,
-//                fontFamily = FontFamily.SansSerif,
-//                fontWeight = FontWeight.Bold,
-//                color = Color.White,
-//                textAlign = TextAlign.Start
-//            )
-//            Spacer(modifier = Modifier.height(8.dp))
-//            Text(
-//                text = "${currentDateTime.format(timeFormatter)}  ${
-//                    currentDateTime.format(
-//                        dateFormatter
-//                    )
-//                }",
-//                fontSize = 16.sp,
-//                fontFamily = FontFamily.SansSerif,
-//                fontWeight = FontWeight.Bold,
-//                color = Color.White,
-//                textAlign = TextAlign.End
-//            )
-//
-//        }
-//    }
-//}
-
-
 
 @Composable
 fun RecommendedUpiAppCard(
@@ -524,7 +380,10 @@ fun RecommendedUpiAppCard(
                 shape = RoundedCornerShape(8.dp) // Rounded corners for the border
             )
             .padding(0.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp, focusedElevation = 0.dp), // Add some elevation for the card
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 0.dp,
+            focusedElevation = 0.dp
+        ), // Add some elevation for the card
         shape = RoundedCornerShape(8.dp), // Rounded corners for the card
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -584,14 +443,15 @@ fun RecommendedUPIApps() {
 //                val upiResult = data?.getStringExtra("response") ?: ""
                 paymentHelper.handleUpiPaymentResponse(context, data)
             } else {
-                Toast.makeText(context, "Transaction failed or canceled.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Transaction failed or canceled.", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
     )
 
 
 
-    Column (modifier = Modifier.padding(16.dp) ){
+    Column(modifier = Modifier.padding(16.dp)) {
 
         Text(
             text = "Recommended",
@@ -612,7 +472,10 @@ fun RecommendedUPIApps() {
                     shape = RoundedCornerShape(8.dp) // Rounded corners for the border
                 )
                 .padding(horizontal = 0.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp, focusedElevation = 0.dp),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 0.dp,
+                focusedElevation = 0.dp
+            ),
             shape = RoundedCornerShape(8.dp), // Rounded corners for the card
             colors = CardDefaults.cardColors(
                 containerColor = Color.White
@@ -688,35 +551,45 @@ private fun generateQRCode(content: String): Bitmap? {
 
 @SuppressLint("RememberReturnType", "DefaultLocale")
 @Composable
-fun QRExpansionTile(title: String, iconResourceId: Int, upiId: String, showExpanded: MutableState<Boolean>, activity: ComponentActivity) {
-
+fun QRExpansionTile(
+    title: String,
+    iconResourceId: Int,
+    upiId: String,
+    showExpanded: MutableState<Boolean>,
+    activity: ComponentActivity
+) {
 
 
     // Generate the QR code bitmap
     val qrCodeBitmap = generateQRCode(upiId)
 
     // State for the timer countdown
-    var timeLeft by remember { mutableStateOf(1 * 60 * 1000L) } // 5 minutes in milliseconds
-    var formattedTime by remember { mutableStateOf("01:00") }
+    var timeLeft by remember { mutableStateOf(5 * 60 * 1000L) } // 5 minutes in milliseconds
+    var formattedTime by remember { mutableStateOf("05:00") }
 
     // Timer countdown logic using LaunchedEffect
     LaunchedEffect(key1 = timeLeft) {
         if (timeLeft > 0) {
             launch {
-                kotlinx.coroutines.delay(1000L)
+                delay(1000L)
                 timeLeft -= 1000L
-                formattedTime = String.format("%02d:%02d", timeLeft / 60000, (timeLeft % 60000) / 1000)
+                formattedTime =
+                    String.format("%02d:%02d", timeLeft / 60000, (timeLeft % 60000) / 1000)
             }
         } else {
+
+            // todo: close the activity
             // Close the activity when time reaches zero
-//            activity.finish()
+            activity.finish()
         }
     }
 
 
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
         Text(
             text = "Preferred Payment Methods",
             fontSize = 16.sp,
@@ -736,7 +609,10 @@ fun QRExpansionTile(title: String, iconResourceId: Int, upiId: String, showExpan
                     shape = RoundedCornerShape(8.dp)
                 )
                 .padding(0.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp, focusedElevation = 0.dp),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 0.dp,
+                focusedElevation = 0.dp
+            ),
             shape = RoundedCornerShape(8.dp), // Rounded corners for the card
             colors = CardDefaults.cardColors(
                 containerColor = Color.White
@@ -811,10 +687,14 @@ fun QRExpansionTile(title: String, iconResourceId: Int, upiId: String, showExpan
                 Text(
                     text = "Time remaining: $formattedTime",
                     fontSize = 14.sp,
+                    textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Normal,
                     color = Color.Gray,
-                    modifier = Modifier.padding(top = 16.dp)
+                    modifier = Modifier
+                        .padding(top = 16.dp)
+                        .align(Alignment.CenterHorizontally) // Center-align the text
                 )
+
             }
         }
     }
@@ -830,9 +710,11 @@ fun InputFieldWithSubmit(title: String, iconResourceId: Int) {
 
 
 
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp)){
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
         Text(
             text = "Raise UPI Request",
             fontSize = 16.sp,
@@ -852,7 +734,10 @@ fun InputFieldWithSubmit(title: String, iconResourceId: Int) {
                     shape = RoundedCornerShape(8.dp)
                 )
                 .padding(0.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp, focusedElevation = 0.dp),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 0.dp,
+                focusedElevation = 0.dp
+            ),
             shape = RoundedCornerShape(8.dp), // Rounded corners for the card
             colors = CardDefaults.cardColors(
                 containerColor = Color.White
@@ -1033,28 +918,8 @@ fun UPIValidationForm() {
             }
         }
 
-        Button(
-            onClick = {
-                showDialog = true // Show the confirmation dialog
-            },
-            shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(contentColor = Color(0xFF3F51B5)),
-            modifier = Modifier
-                .height(64.dp)
-                .fillMaxWidth()
-                .focusRequester(submitButtonFocusRequester)
-        ) {
-            Text(
-                text = "TEST ALERT DIALOG",
-                fontSize = 20.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
         // Display the dismissible alert dialog
         if (showDialog) {
-//            DismissibleAlertDialog(onDismiss = { showDialog = false })
             DismissibleAlertDialog(
                 onDismiss = { showDialog = false },
                 payingTo = "John Doe",
@@ -1096,6 +961,7 @@ fun DismissibleAlertDialog(
                 modifier = Modifier
                     .padding(bottom = 8.dp)
                     .fillMaxWidth()
+                    .wrapContentHeight()
             ) {
                 // Displaying the image at the top
                 Image(
@@ -1111,7 +977,7 @@ fun DismissibleAlertDialog(
                     fontWeight = FontWeight.Bold
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
                 // Row containing "Paying to" and "Amount"
                 Row(
@@ -1130,7 +996,10 @@ fun DismissibleAlertDialog(
                         )
                         Text(
                             text = payingTo,
-                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, fontSize = 16.sp),
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            ),
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -1146,8 +1015,11 @@ fun DismissibleAlertDialog(
                             style = MaterialTheme.typography.labelSmall
                         )
                         Text(
-                            text = amount,
-                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, fontSize = 16.sp),
+                            text = "₹ $amount",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            ),
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -1176,10 +1048,15 @@ fun DismissibleAlertDialog(
                 Text(
                     text = buildAnnotatedString {
                         append("Please authorize payment of ")
-                        withStyle(style = SpanStyle(color = Color.Blue, fontWeight = FontWeight.Bold)) {
-                            append(amount) // Color the amount text
+                        withStyle(
+                            style = SpanStyle(
+                                color = Color.Blue,
+                                fontWeight = FontWeight.Bold
+                            )
+                        ) {
+                            append("₹ $amount") // Color the amount text
                         }
-                        append(" on your UPI mobile app within:")
+                        append(" on your UPI mobile app within.")
                     },
                     style = MaterialTheme.typography.headlineSmall.copy(fontSize = 16.sp),
                     textAlign = TextAlign.Center
@@ -1200,7 +1077,7 @@ fun DismissibleAlertDialog(
                     ) {
                         Text(
                             text = String.format("%02d", timeLeft / 60), // Remaining minutes
-                            style = MaterialTheme.typography.displayMedium,
+                            style = MaterialTheme.typography.displaySmall,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
@@ -1223,7 +1100,7 @@ fun DismissibleAlertDialog(
                     ) {
                         Text(
                             text = String.format("%02d", timeLeft % 60), // Remaining seconds
-                            style = MaterialTheme.typography.displayMedium,
+                            style = MaterialTheme.typography.displaySmall,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
@@ -1234,7 +1111,8 @@ fun DismissibleAlertDialog(
                 }
 
                 // Powered by UPI
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(64.dp))
+//                Spacer(modifier = Modifier.weight(1f))
 
                 Text(
                     text = "POWERED BY",
@@ -1259,15 +1137,6 @@ fun DismissibleAlertDialog(
 }
 
 
-
-
-
-
-
-
-
-
-
 // TODO: expansion tile for the all payment options
 @SuppressLint("QueryPermissionsNeeded")
 @Composable
@@ -1285,7 +1154,8 @@ fun InstalledUpiAppsExpansionTile(
         }
 
         // Retrieve apps that can handle the UPI intent
-        val activities = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        val activities =
+            packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
 
         activities.mapNotNull { resolveInfo ->
             val appInfo = resolveInfo.activityInfo?.applicationInfo
@@ -1377,13 +1247,20 @@ fun InstalledUpiAppsExpansionTile(
                                         onClick = {
                                             // Launch the app when tapped
                                             try {
-                                                val intent = packageManager.getLaunchIntentForPackage(packageName)
+                                                val intent =
+                                                    packageManager.getLaunchIntentForPackage(
+                                                        packageName
+                                                    )
                                                 intent?.let {
                                                     context.startActivity(it)
                                                 }
                                             } catch (e: Exception) {
                                                 // Handle any errors (app not found, etc.)
-                                                Toast.makeText(context, "Unable to open $appName", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(
+                                                    context,
+                                                    "Unable to open $appName",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
                                             }
                                         },
                                         shape = RoundedCornerShape(64.dp),
@@ -1441,9 +1318,6 @@ fun InstalledUpiAppsExpansionTile(
 }
 
 
-
-
-
 @Composable
 fun ButtonList(visibleButtons: List<String>) {
     Column(
@@ -1460,12 +1334,12 @@ fun ButtonList(visibleButtons: List<String>) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 rowButtons.forEach { button ->
-                    Column (
+                    Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
                             .weight(1f)
                             .padding(bottom = 16.dp)
-                    ){
+                    ) {
 
                         Button(
                             onClick = { Log.d("ButtonClick", "App Name: $button") },

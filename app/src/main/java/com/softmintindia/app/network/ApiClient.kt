@@ -1,6 +1,5 @@
 package com.softmintindia.app.network
 
-import com.softmintindia.pgsdk.network.ApiService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 

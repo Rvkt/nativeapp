@@ -1,13 +1,6 @@
 package com.softmintindia.app
 
-import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.drawable.BitmapDrawable
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -16,46 +9,32 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.softmintindia.app.network.ApiCallback
 import com.softmintindia.app.network.ApiClient
+import com.softmintindia.app.network.models.AuthenticatedResponse
 import com.softmintindia.app.ui.theme.AppTheme
 import com.softmintindia.pgsdk.PGSDKManager
 import com.softmintindia.pgsdk.PaymentFailedActivity
 import com.softmintindia.pgsdk.PaymentSuccessActivity
 import com.softmintindia.pgsdk.network.ApiHeaders
-import com.softmintindia.pgsdk.network.ResponseModel
-import com.softmintindia.pgsdk.network.models.AuthenticatedResponse
 import com.softmintindia.pgsdk.network.models.AuthenticationResponse
 import retrofit2.Call
 import retrofit2.Callback
@@ -71,14 +50,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Box(modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                    ) {
                         // Use a Column to stack the button on top
                         Column(modifier = Modifier.fillMaxSize()) {
                             Button(
                                 onClick = {
-
                                     PGSDKManager.initialize(
                                         context = this@MainActivity,
                                         apiKey = "123456",
@@ -88,64 +68,132 @@ class MainActivity : ComponentActivity() {
                                         if (success) {
                                             // Initialization successful, PaymentActivity will start automatically
                                             Log.d("MainActivity", message)
-                                            Toast.makeText(this@MainActivity, "Initialization successful", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                this@MainActivity,
+                                                "Initialization successful",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         } else {
                                             // Handle initialization failure
                                             Log.e("MainActivity", message)
                                             // Show a toast saying "Initialization failed"
-                                            Toast.makeText(this@MainActivity, "Initialization failed, $message", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                this@MainActivity,
+                                                "Initialization failed, $message",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
                                     }
-
-                                          },
+                                },
                                 modifier = Modifier
                                     .align(Alignment.CenterHorizontally)
-                                    .padding(16.dp) // Center the button horizontally
+                                    .padding(16.dp)
                             ) {
                                 Text("Go to Payment")
                             }
 
-                            Button(onClick = { this@MainActivity.makePostApiCall() }) {
-                                Text(text = "Call API")
+                            Button(
+                                onClick = {
+                                    this@MainActivity.makePostApiCall(
+                                        userName = "9999726418",
+                                        password = "",
+                                        source = "SDK",
+                                        mode = "VIA_MOBILE",
+                                        otp = ""
+                                    )
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "Login User",
+                                    modifier = Modifier.padding(16.dp)
+                                )
                             }
 
-//                            Row (
-//                                modifier = Modifier.padding(16.dp),
-//                                verticalAlignment = Alignment.CenterVertically,
-//                                horizontalArrangement = Arrangement.SpaceBetween,
-//                            ){
-//                                Button(
-//                                    onClick = {
-//                                        val successMessage = "Payment Successful"
-//                                        showToast(this@MainActivity, successMessage)
-//                                        val intent = Intent(this@MainActivity, PaymentSuccessActivity::class.java)
-//                                        intent.putExtra("SUCCESS_MESSAGE", successMessage)
-//                                        this@MainActivity.startActivity(intent)
-//                                    },
-//                                    modifier = Modifier
-//                                        .padding(vertical = 8.dp)
-//                                        .weight(1f)
-//                                ) {
-//                                    Text(text = "Payment Success")
-//                                }
-//                                Spacer(modifier = Modifier.width(16.dp))
-//
-//                                // Button for failure
-//                                Button(
-//                                    onClick = {
-//                                        val failureMessage = "Payment Failed"
-//                                        showToast(this@MainActivity, failureMessage)
-//                                        val intent = Intent(this@MainActivity, PaymentFailedActivity::class.java)
-//                                        intent.putExtra("FAILURE_MESSAGE", failureMessage)
-//                                        this@MainActivity.startActivity(intent)
-//                                    },
-//                                    modifier = Modifier
-//                                        .padding(vertical = 8.dp)
-//                                        .weight(1f)
-//                                ) {
-//                                    Text(text = "Payment Failure")
-//                                }
-//                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+
+
+                            Button(
+                                onClick = {
+                                    this@MainActivity.submitOtp(
+                                        userName = "9999726418",
+                                        password = "",
+                                        source = "SDK",
+                                        mode = "VIA_MOBILE",
+                                        otp = "111111"
+                                    )
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "Submit OTP",
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                            }
+
+
+
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Button(
+                                    onClick = {
+                                        val successMessage = "Payment Successful"
+                                        val payeeName = "John Doe" // Example payee name
+                                        val amount = "500" // Example amount
+                                        val date = "26 Dec, 2024" // Example date
+                                        val time = "10:30 AM" // Example time
+                                        val txnId = "TXN20241226" // Example transaction ID
+
+                                        // Show a toast message
+                                        showToast(this@MainActivity, successMessage)
+
+                                        // Create an intent to start PaymentSuccessActivity
+                                        val intent = Intent(
+                                            this@MainActivity,
+                                            PaymentSuccessActivity::class.java
+                                        ).apply {
+                                            putExtra("SUCCESS_MESSAGE", successMessage)
+                                            putExtra("PAYEE_NAME", payeeName)
+                                            putExtra("AMOUNT", amount)
+                                            putExtra("DATE", date)
+                                            putExtra("TIME", time)
+                                            putExtra("TXN_ID", txnId)
+                                        }
+
+                                        // Start the activity
+                                        this@MainActivity.startActivity(intent)
+                                    },
+                                    modifier = Modifier
+                                        .padding(vertical = 8.dp)
+                                        .weight(1f)
+                                ) {
+                                    Text(text = "Payment Success")
+                                }
+
+                                Spacer(modifier = Modifier.width(16.dp))
+
+                                // Button for failure
+                                Button(
+                                    onClick = {
+                                        val failureMessage = "Payment Failed"
+                                        showToast(this@MainActivity, failureMessage)
+                                        val intent = Intent(
+                                            this@MainActivity,
+                                            PaymentFailedActivity::class.java
+                                        )
+                                        intent.putExtra("FAILURE_MESSAGE", failureMessage)
+                                        this@MainActivity.startActivity(intent)
+                                    },
+                                    modifier = Modifier
+                                        .padding(vertical = 8.dp)
+                                        .weight(1f)
+                                ) {
+                                    Text(text = "Payment Failure")
+                                }
+                            }
 
 //                            InstalledAppsList()
 
@@ -156,17 +204,22 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    fun makePostApiCall() {
+    private fun makePostApiCall(
+        userName: String,
+        password: String,
+        source: String,
+        mode: String,
+        otp: String
+    ) {
         // Request body map
         val requestBody = mapOf(
-            "userName" to "9999726418",
-            "password" to "",
-            "source" to "APP",
-            "mode" to "VIA_MOBILE",
-            "otp" to "111111"
+            "userName" to userName,
+            "password" to password,
+            "source" to source,
+            "mode" to mode,
+            "otp" to otp
         )
 
-        val apiService = ApiClient.apiService
         val header = ApiHeaders.deviceIdHeader(context = this@MainActivity).toString()
 
         val callback = ApiCallback<AuthenticationResponse> { success, data, message ->
@@ -174,23 +227,10 @@ class MainActivity : ComponentActivity() {
                 Log.d("Response", "Success: $data")
 
                 if (data != null) {
-                    if (data.status.toInt() == 6){
+                    if (data.status.toInt() == 6) {
                         Log.d("ApiCallback", "makePostApiCall: ${data.message}")
-                        apiService.verifyUser(header, requestBody = requestBody)
-                            .enqueue(object : Callback<AuthenticatedResponse> {
-                                override fun onResponse(call: Call<AuthenticatedResponse>, response: Response<AuthenticatedResponse>) {
-                                    if (response.isSuccessful) {
-                                        val responseBody = response.body()
-                                        responseBody?.let {
-                                            Log.d("Authenticate User", "\n${it.user}")
-                                        }
-                                    }
-                                }
-
-                                override fun onFailure(call: Call<AuthenticatedResponse>, t: Throwable) {
-                                    TODO("Not yet implemented")
-                                }
-                            })
+                    } else if (data.status.toInt() == 1) {
+                        Log.d("ApiCallback", "makePostApiCall Submit OTP: ${data.message}")
                     }
                 }
 
@@ -200,10 +240,12 @@ class MainActivity : ComponentActivity() {
         }
 
 
-
-        ApiClient.apiService.authenticateUser(ApiHeaders.deviceIdHeader(this@MainActivity).toString(), requestBody = requestBody)
+        ApiClient.apiService.authenticateUser(header, requestBody = requestBody)
             .enqueue(object : Callback<AuthenticationResponse> {
-                override fun onResponse(call: Call<AuthenticationResponse>, response: Response<AuthenticationResponse>) {
+                override fun onResponse(
+                    call: Call<AuthenticationResponse>,
+                    response: Response<AuthenticationResponse>
+                ) {
                     if (response.isSuccessful) {
                         val responseBody = response.body()
                         responseBody?.let {
@@ -219,186 +261,69 @@ class MainActivity : ComponentActivity() {
                     callback.onError("Network call failed: ${t.message}")
                 }
             })
-
-//        ApiClient.apiService.verifyUser(ApiHeaders.deviceIdHeader(this@MainActivity).toString(), requestBody = requestBody)
-//            .enqueue(object : Callback<AuthenticatedResponse> {
-//                override fun onResponse(call: Call<AuthenticatedResponse>, response: Response<AuthenticatedResponse>) {
-//                    if (response.isSuccessful) {
-//                        val responseBody = response.body()
-//                        responseBody?.let {
-//                            Log.d("Authenticate User", "\n${it.user}")
-//                        }
-//                    } else {
-//                        callback.onError("Response unsuccessful: ${response.errorBody()?.string()}")
-//                    }
-//                }
-//
-//                override fun onFailure(call: Call<AuthenticatedResponse>, t: Throwable) {
-//                    TODO("Not yet implemented")
-//                }
-//            })
-
-    }
-}
-
-
-@SuppressLint("QueryPermissionsNeeded")
-@Composable
-fun InstalledAppsList() {
-
-    // Obtain the context from LocalContext
-    val context = LocalContext.current
-
-    // Retrieve the list of installed packages
-    val packageManager = context.packageManager
-    val installedApps = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
-
-    // Filter apps that can handle 'upi://' scheme
-    val upiApps = installedApps.filter { appInfo ->
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            data = Uri.parse("upi://pay")
-        }
-        // Query the available activities that can handle this UPI URI
-        val activities = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
-        activities.any { it.activityInfo.packageName == appInfo.packageName }
     }
 
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(installedApps) { appInfo ->
-            // Card displaying the app icon, label, and package name
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        /* launch the app */
-                        val intent = packageManager.getLaunchIntentForPackage(appInfo.packageName)
-                        if (intent != null) {
-                            context.startActivity(intent)
-                            Log.d(
-                                "InstalledAppsList",
-                                "Launching app: ${appInfo.loadLabel(packageManager)} (${appInfo.packageName})"
-                            )
-                        } else {
-                            Toast
-                                .makeText(
-                                    context,
-                                    "Unable to launch ${appInfo.loadLabel(packageManager)}",
-                                    Toast.LENGTH_SHORT
-                                )
-                                .show()
-                            Log.d(
-                                "InstalledAppsList",
-                                "Failed to launch app: ${appInfo.packageName}"
-                            )
-                        }
-                    }
-                    .padding(8.dp), // Add some padding around the card
-            ) {
-                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
-                    // Retrieve the app icon safely
-                    val appIcon = try {
-                        appInfo.loadIcon(packageManager)
-                    } catch (e: Exception) {
-                        null // Handle cases where the icon cannot be retrieved
-                    }
-
-                    // Convert Drawable to Bitmap and then to ImageBitmap if valid
-                    val imageBitmap = try {
-                        val drawable = appInfo.loadIcon(packageManager)
-                        if (drawable is BitmapDrawable) {
-                            drawable.bitmap.asImageBitmap()
-                        } else {
-                            // Convert non-bitmap drawable to bitmap
-                            val bitmap = Bitmap.createBitmap(
-                                drawable.intrinsicWidth,
-                                drawable.intrinsicHeight,
-                                Bitmap.Config.ARGB_8888
-                            )
-                            val canvas = Canvas(bitmap)
-                            drawable.setBounds(0, 0, canvas.width, canvas.height)
-                            drawable.draw(canvas)
-                            bitmap.asImageBitmap()
-                        }
-                    } catch (e: Exception) {
-                        null // Handle cases where conversion fails
-                    }
-
-                    // Use BitmapPainter if the icon is a Bitmap
-                    imageBitmap?.let {
-                        Image(
-                            painter = remember { BitmapPainter(it) },
-                            contentDescription = "App Icon",
-                            modifier = Modifier
-                                .size(72.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    // Column inside the Row to show the app name and package name
-                    Column(modifier = Modifier.align(Alignment.Top)) {
-                        Text(text = "${appInfo.loadLabel(packageManager)}", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, fontSize = 16.sp))
-                        Text(text = "Package Name: ${appInfo.packageName}", style = MaterialTheme.typography.labelSmall)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun PaymentResultScreen(context: Context) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    private fun submitOtp(
+        userName: String,
+        password: String,
+        source: String,
+        mode: String,
+        otp: String
     ) {
-        Text(
-            text = "Payment Status",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 32.dp)
+        // Request body map
+        val requestBody = mapOf(
+            "userName" to userName,
+            "password" to password,
+            "source" to source,
+            "mode" to mode,
+            "otp" to otp
         )
 
-        // Button for success
-        Button(
-            onClick = {
-                val successMessage = "Payment Successful"
-                showToast(context, successMessage)
-                val intent = Intent(context, PaymentSuccessActivity::class.java)
-                intent.putExtra("SUCCESS_MESSAGE", successMessage)
-                context.startActivity(intent)
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
-        ) {
-            Text(text = "Simulate Payment Success")
+        val header = ApiHeaders.deviceIdHeader(context = this@MainActivity).toString()
+
+        val callback = ApiCallback<AuthenticatedResponse> { success, data, message ->
+            if (success) {
+                Log.d("Response", "Success: $data")
+
+                if (data != null) {
+                    if (data.status.toInt() == 6) {
+                        Log.d("ApiCallback", "makePostApiCall: ${data.message}")
+                    } else if (data.status.toInt() == 1) {
+                        Log.d("ApiCallback", "makePostApiCall Submit OTP: ${data.message}")
+                    }
+                }
+
+            } else {
+                Log.e("Error", "Failure: $message")
+            }
         }
 
-        // Button for failure
-        Button(
-            onClick = {
-                val failureMessage = "Payment Failed"
-                showToast(context, failureMessage)
-                val intent = Intent(context, PaymentFailedActivity::class.java)
-                intent.putExtra("FAILURE_MESSAGE", failureMessage)
-                context.startActivity(intent)
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
-        ) {
-            Text(text = "Simulate Payment Failure")
-        }
+
+        ApiClient.apiService.verifyUser(header, requestBody = requestBody)
+            .enqueue(object : Callback<AuthenticatedResponse> {
+                override fun onResponse(
+                    call: Call<AuthenticatedResponse>,
+                    response: Response<AuthenticatedResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        val responseBody = response.body()
+                        responseBody?.let {
+                            Log.d("Authenticate User", "\n$it")
+                            callback.onSuccess(it)
+                        }
+                    } else {
+                        callback.onError("Response unsuccessful: ${response.errorBody()?.string()}")
+                    }
+                }
+
+
+                override fun onFailure(call: Call<AuthenticatedResponse>, t: Throwable) {
+                    callback.onError("Failed: ${t.message}")
+                }
+            })
     }
-}
 
-fun showToast(context: Context, message: String) {
-    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 }
-
 
 
 @Preview(showBackground = true)
@@ -408,3 +333,4 @@ fun DefaultPreview() {
         InstalledAppsList()
     }
 }
+

@@ -22,20 +22,17 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.provider.Settings
 import android.util.Log
-import android.view.Window
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.softmintindia.pgsdk.network.NetworkUtils
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
 
 
 object PGSDKManager {
@@ -63,8 +60,8 @@ object PGSDKManager {
         saveApiKeyToPreferences(context, apiKey)
 
 
-        // Show initialization dialog with progress
-        // showInitializationDialog(context)
+//         Show initialization dialog with progress
+//         showInitializationDialog(context)
 
 
         // Launch coroutine for asynchronous tasks
@@ -130,10 +127,16 @@ object PGSDKManager {
         amount: String,
         callback: (Boolean, String) -> Unit
     ) {
-        callPaymentApi(context, apiKey, deviceId, amount) { success, companyName, upiUrl, qrService, raiseRequest, intentRequest, errorMessage ->
+        callPaymentApi(
+            context,
+            apiKey,
+            deviceId,
+            amount
+        ) { success, companyName, upiUrl, qrService, raiseRequest, intentRequest, errorMessage ->
             if (success) {
                 Log.d("PGSDKManager", "Initialization successful.")
-                startPaymentActivity(context, companyName, amount, upiUrl,
+                startPaymentActivity(
+                    context, companyName, amount, upiUrl,
                     qrService, raiseRequest, intentRequest,
                 )
                 callback(true, "Initialization and API call successful.")
@@ -162,7 +165,8 @@ object PGSDKManager {
 
                 // Simulated API response
                 val companyName = "Softmint India Pvt. Ltd."
-                val upiUrl = "upi://pay?pa=merchant@upi&pn=Merchant&mc=1234&tid=12345&url=https://example.com"
+                val upiUrl =
+                    "upi://pay?pa=merchant@upi&pn=Merchant&mc=1234&tid=12345&url=https://example.com"
                 val qrService = true
                 val raiseRequest = true
                 val intentRequest = true
@@ -211,7 +215,6 @@ object PGSDKManager {
     }
 
 
-
     // Show Initialization Dialog while API call is made
     @OptIn(DelicateCoroutinesApi::class)
     private fun showInitializationDialog(context: Context) {
@@ -237,10 +240,10 @@ object PGSDKManager {
     }
 
 
-
     // Retrieve API Key
     fun getApiKey(): String {
-        return apiKey ?: throw IllegalStateException("PGSDK not initialized. Call initialize() first.")
+        return apiKey
+            ?: throw IllegalStateException("PGSDK not initialized. Call initialize() first.")
     }
 
     // Clear data (if required)

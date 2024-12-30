@@ -1,26 +1,20 @@
 package com.softmintindia.pgsdk
 
+//import androidx.compose.foundation.layout.FlowRowScopeInstance.weight
 import android.annotation.SuppressLint
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-//import androidx.compose.foundation.layout.FlowRowScopeInstance.weight
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -30,31 +24,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
@@ -73,7 +59,8 @@ class PaymentFailedActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val successMessage = intent.getStringExtra("SUCCESS_MESSAGE") ?: "Payment completed successfully!"
+        val successMessage =
+            intent.getStringExtra("SUCCESS_MESSAGE") ?: "Payment completed successfully!"
 
         val currentDateTime = LocalDateTime.now()
         val dateFormatter = DateTimeFormatter.ofPattern("d MMM, yyyy")
@@ -96,7 +83,7 @@ class PaymentFailedActivity : ComponentActivity() {
                 Scaffold(
                     containerColor = Color(0xFF3F51B5),
 //                    containerColor = MaterialTheme.colorScheme.background, // Adapts to light/dark theme
-                    topBar = { AppBar()}
+                    topBar = { AppBar() }
                 ) {
                     // Box to center the content
                     Box(
@@ -104,13 +91,13 @@ class PaymentFailedActivity : ComponentActivity() {
                         contentAlignment = Alignment.Center // This centers the content
                     ) {
 
-                        val timerState = remember { mutableStateOf(10) } // Initial 10 seconds timer
+                        val timerState = remember { mutableIntStateOf(10) } // Initial 10 seconds timer
 
                         // LaunchedEffect will update the timerState every second
                         LaunchedEffect(Unit) {
-                            while (timerState.value > 0) {
+                            while (timerState.intValue > 0) {
                                 delay(1000) // Wait for 1 second
-                                timerState.value -= 1
+                                timerState.intValue -= 1
                             }
                             // Here you can add the redirection logic when the timer reaches 0
                             finish() // Finishes the activity after the timer reaches 0
@@ -127,7 +114,7 @@ class PaymentFailedActivity : ComponentActivity() {
                         ) {
                             Spacer(modifier = Modifier.height(128.dp))
                             Text(
-                                text = "You will be redirected in ${timerState.value} seconds..",
+                                text = "You will be redirected in ${timerState.intValue} seconds..",
                                 fontSize = 12.sp,
                                 fontFamily = FontFamily.SansSerif,
                                 fontWeight = FontWeight.Normal,
@@ -160,21 +147,27 @@ class PaymentFailedActivity : ComponentActivity() {
 
                             Card {
                                 Column {
-                                    Row (
+                                    Row(
                                         Modifier
                                             .fillMaxWidth()
                                             .padding(24.dp),
                                         horizontalArrangement = Arrangement.SpaceBetween
-                                    ){
+                                    ) {
                                         Column {
-                                            Text(text = "ACPL", fontSize = 20.sp,
+                                            Text(
+                                                text = "ACPL", fontSize = 20.sp,
                                                 fontFamily = FontFamily.SansSerif,
                                                 fontWeight = FontWeight.Bold,
                                                 color = Color.DarkGray,
-                                                textAlign = TextAlign.Start)
+                                                textAlign = TextAlign.Start
+                                            )
                                             Spacer(modifier = Modifier.height(4.dp))
                                             Text(
-                                                text = "${currentDateTime.format(timeFormatter)}  ${currentDateTime.format(dateFormatter)}",
+                                                text = "${currentDateTime.format(timeFormatter)}  ${
+                                                    currentDateTime.format(
+                                                        dateFormatter
+                                                    )
+                                                }",
                                                 fontSize = 16.sp,
                                                 fontFamily = FontFamily.SansSerif,
                                                 fontWeight = FontWeight.Normal,
@@ -182,17 +175,20 @@ class PaymentFailedActivity : ComponentActivity() {
                                                 textAlign = TextAlign.Start
                                             )
                                         }
-                                        Text(text = "₹ 500", fontSize = 20.sp,
+                                        Text(
+                                            text = "₹ 500", fontSize = 20.sp,
                                             fontFamily = FontFamily.Monospace,
                                             fontWeight = FontWeight.Bold,
                                             color = Color.DarkGray,
-                                            textAlign = TextAlign.End)
+                                            textAlign = TextAlign.End
+                                        )
                                     }
                                     HorizontalDivider()
-                                    Row (
+                                    Row(
                                         Modifier
                                             .fillMaxWidth()
-                                            .padding(24.dp),){
+                                            .padding(24.dp),
+                                    ) {
                                         Text(
                                             text = "TXN ID:",
                                             fontSize = 16.sp,
@@ -233,12 +229,6 @@ class PaymentFailedActivity : ComponentActivity() {
                                     }
                                 }
                             }
-
-
-
-
-
-
 
 
                         }

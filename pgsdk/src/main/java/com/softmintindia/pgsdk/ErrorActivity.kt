@@ -46,7 +46,7 @@ class ErrorActivity : ComponentActivity() {
                             modifier = Modifier
                                 .verticalScroll(rememberScrollState()) // Enable scrolling if content is too long
                                 .padding(24.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
                                 text = "Payment Gateway Initialization Failed.",
