@@ -11,8 +11,15 @@ data class CheckTxnStatusResponse(
         val amount: String,
         val date: String,
         val time: String,
-        val txnID: String,
+        val orderId: String,
         val remark: String,
-        val status: String
-    )
+        val status: String,
+        val rrn: String,
+        val responseCode: String,
+        val payeeVpa: String,
+        val identifire: String)
 }
+
+
+
+

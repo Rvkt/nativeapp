@@ -7,7 +7,7 @@ object ApiClient {
 
     // Base URL for the API
 //    private const val BASE_URL = "https://m.easyswift.in/"
-    private const val BASE_URL = "http://192.168.1.31:8088/softmint-upi/"
+    private const val BASE_URL = "http://192.168.1.50:8088/softmint-upi/"
 
     // Initialize the Retrofit instance
     private val retrofit: Retrofit by lazy {

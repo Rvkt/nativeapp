@@ -1,5 +1,7 @@
 package com.softmintindia.app
 
+//import com.softmintindia.pgsdk.PGSDKManager.showInitializationDialog
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -9,6 +11,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,32 +19,49 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.softmintindia.app.data.ApiCallback
-import com.softmintindia.app.data.ApiClient
-import com.softmintindia.app.domain.models.AuthenticatedResponse
-import com.softmintindia.app.ui.theme.AppTheme
-import com.softmintindia.pgsdk.PaymentFailedActivity
-import com.softmintindia.pgsdk.PaymentSuccessActivity
-import com.softmintindia.app.data.ApiHeaders
-import com.softmintindia.app.domain.models.PgsdkInitRequest
-import com.softmintindia.app.domain.models.PgsdkInitResponse
+import androidx.compose.ui.unit.sp
 import com.softmintindia.app.presentation.InstalledAppsList
 import com.softmintindia.app.presentation.showToast
+import com.softmintindia.app.ui.theme.AppTheme
 import com.softmintindia.pgsdk.PGSDKManager
-import com.softmintindia.pgsdk.network.models.AuthenticationResponse
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import com.softmintindia.pgsdk.PaymentFailedActivity
+import com.softmintindia.pgsdk.PaymentSuccessActivity
+import com.softmintindia.pgsdk.R
+import kotlinx.coroutines.delay
 
 
 class MainActivity : ComponentActivity() {
@@ -49,6 +69,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
+
         enableEdgeToEdge()
         setContent {
             AppTheme {
@@ -101,12 +124,13 @@ class MainActivity : ComponentActivity() {
 //                                    this@MainActivity.initiateUpiTxn("100.00", "Initiate UPI Transaction", identifier = "TEST SDK", orderId = "TXN20241230174410");
                                     PGSDKManager.initialize(
                                         context = this@MainActivity,
-                                        amount = "100.00",
+                                        amount = "10",
                                         remark = "SDK Initialization",
-                                        identifier = "SDK Initialization",
+                                        identifier = "GANPATI001",
                                         orderId = "TXN20241230174410"
                                     ) { success, message ->
                                         if (success) {
+//                                            this@MainActivity.finish()
                                             // Initialization successful, PaymentActivity will start automatically
                                             Log.d("MainActivity", message)
                                             Toast.makeText(
@@ -126,7 +150,9 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 },
-                                modifier = Modifier.fillMaxWidth().padding(16.dp)
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
                             ) {
                                 Text(
                                     text = "Navigate to Payment",
@@ -156,65 +182,7 @@ class MainActivity : ComponentActivity() {
 //                            )
 
 
-
-
-
-
-
-                            PaymentButtons(
-                                onPaymentSuccess = {
-                                    val successMessage = "Payment Successful"
-                                    val failureMessage = "Payment Unsuccessful"
-                                    val payeeName = "John Doe" // Example payee name
-                                    val amount = "500" // Example amount
-                                    val date = "26 Dec, 2024" // Example date
-                                    val time = "10:30 AM" // Example time
-                                    val txnId = "TXN20241226" // Example transaction ID
-
-                                    // Show a toast message
-                                    showToast(this@MainActivity, successMessage)
-
-                                    // Create an intent to start PaymentSuccessActivity
-                                    val intent = Intent(
-                                        this@MainActivity,
-                                        PaymentSuccessActivity::class.java
-                                    ).apply {
-                                        putExtra("SUCCESS_MESSAGE", successMessage)
-                                        putExtra("PAYEE_NAME", payeeName)
-                                        putExtra("AMOUNT", amount)
-                                        putExtra("DATE", date)
-                                        putExtra("TIME", time)
-                                        putExtra("TXN_ID", txnId)
-                                    }
-
-                                    // Start the activity
-                                    this@MainActivity.startActivity(intent)
-                                },
-                                onPaymentFailure = {
-                                    val failureMessage = "Payment Failed"
-                                    val payeeName = "John Doe" // Example payee name
-                                    val amount = "500" // Example amount
-                                    val date = "26 Dec, 2024" // Example date
-                                    val time = "10:30 AM" // Example time
-                                    val txnId = "TXN20241226" // Example transaction ID
-                                    showToast(this@MainActivity, failureMessage)
-
-                                    // Create an intent to start PaymentSuccessActivity
-                                    val intent = Intent(
-                                        this@MainActivity,
-                                        PaymentFailedActivity::class.java
-                                    ).apply {
-                                        putExtra("SUCCESS_MESSAGE", failureMessage)
-                                        putExtra("PAYEE_NAME", payeeName)
-                                        putExtra("AMOUNT", amount)
-                                        putExtra("DATE", date)
-                                        putExtra("TIME", time)
-                                        putExtra("TXN_ID", txnId)
-                                    }
-
-                                    this@MainActivity.startActivity(intent)
-                                }
-                            )
+                            PaymentScreen()
 
 
 //                            InstalledAppsList()
@@ -225,6 +193,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 
 //    private fun makePostApiCall(
 //        userName: String,
@@ -399,6 +368,208 @@ class MainActivity : ComponentActivity() {
 
 }
 
+@SuppressLint("DefaultLocale")
+@Composable
+fun DismissibleAlertDialog(
+    onDismiss: () -> Unit,
+    companyName: String,
+    payingTo: String,
+    amount: String,
+) {
+    var timeLeft by remember { mutableIntStateOf(60) } // 1 minute in seconds
+
+    LaunchedEffect(Unit) {
+        while (timeLeft > 0) {
+            delay(1000L)
+            timeLeft -= 1
+        }
+        onDismiss() // Close dialog after 1 minute
+    }
+
+    AlertDialog(
+        containerColor = Color.White,
+        onDismissRequest = { /* Do nothing to prevent dismissing on outside clicks */ },
+        title = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+            ) {
+
+                Image(
+                    painter = painterResource(id = R.drawable.ic_softmint),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(bottom = 16.dp)
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier
+                        .padding(top = 16.dp)
+                        .fillMaxWidth(),
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Text(
+                    text = "Payment Confirmation",
+                    style = MaterialTheme.typography.headlineSmall.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "This will only take a moment.",
+                    style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp, fontStyle = FontStyle.Italic),
+//                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+//
+//                // Row containing "Paying to" and "Amount"
+//                Row(
+//                    horizontalArrangement = Arrangement.SpaceBetween,
+//                    modifier = Modifier.fillMaxWidth()
+//                ) {
+//                    Column(
+//                        modifier = Modifier
+//                            .weight(1f)
+//                            .wrapContentHeight(),
+//                        verticalArrangement = Arrangement.Center
+//                    ) {
+//                        Text(
+//                            text = "Paying to",
+//                            style = MaterialTheme.typography.labelSmall
+//                        )
+//                        Text(
+//                            text = payingTo,
+//                            style = MaterialTheme.typography.labelLarge.copy(
+//                                fontWeight = FontWeight.Bold,
+//                                fontSize = 16.sp
+//                            ),
+//                            color = MaterialTheme.colorScheme.primary
+//                        )
+//                    }
+//                    Column(
+//                        modifier = Modifier
+//                            .weight(1f)
+//                            .wrapContentHeight(),
+//                        horizontalAlignment = Alignment.End,
+//                        verticalArrangement = Arrangement.Center
+//                    ) {
+//                        Text(
+//                            text = "Amount",
+//                            style = MaterialTheme.typography.labelSmall
+//                        )
+//                        Text(
+//                            text = "₹ $amount",
+//                            style = MaterialTheme.typography.labelLarge.copy(
+//                                fontWeight = FontWeight.Bold,
+//                                fontSize = 16.sp
+//                            ),
+//                            color = MaterialTheme.colorScheme.primary
+//                        )
+//                    }
+//                }
+
+                // Horizontal Divider
+
+            }
+        },
+        text = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+
+//                Text(
+//                    text = "Confirming you payment",
+//                    style = MaterialTheme.typography.headlineSmall.copy(fontSize = 16.sp),
+//                    textAlign = TextAlign.Center
+//                )
+
+
+//                Spacer(modifier = Modifier.height(32.dp))
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Column for Minutes
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .padding(end = 16.dp)
+                            .weight(1f) // Distribute space evenly
+                    ) {
+                        Text(
+                            text = String.format("%02d", timeLeft / 60), // Remaining minutes
+                            style = MaterialTheme.typography.displaySmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Minutes",
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+
+                    // Colon separator
+                    Text(
+                        text = ":",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    // Column for Seconds
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.weight(1f) // Distribute space evenly
+                    ) {
+                        Text(
+                            text = String.format("%02d", timeLeft % 60), // Remaining seconds
+                            style = MaterialTheme.typography.displaySmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Seconds",
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                }
+
+                // Powered by UPI
+//                Spacer(modifier = Modifier.height(64.dp))
+//                Spacer(modifier = Modifier.weight(1f))
+
+//                Text(
+//                    text = "POWERED BY",
+//                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+//                    textAlign = TextAlign.Center
+//                )
+//                Image(
+//                    painter = painterResource(id = R.drawable.ic_upi),
+//                    contentDescription = null,
+//                    modifier = Modifier
+//                        .size(48.dp)
+//                        .wrapContentHeight()
+//                        .fillMaxWidth()
+//                )
+            }
+        },
+        confirmButton = { /* No confirm button */ },
+        dismissButton = { /* No dismiss button */ },
+        modifier = Modifier.clip(RoundedCornerShape(16.dp)) // Custom shape
+    )
+
+}
+
+
 @Composable
 fun LoginButtons(
     onLoginClick: () -> Unit,
@@ -434,37 +605,84 @@ fun LoginButtons(
 }
 
 @Composable
+fun PaymentScreen() {
+    var showDialog by remember { mutableStateOf(false) }
+    var dialogType by remember { mutableStateOf("SUCCESS") }
+    val context = LocalContext.current
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        PaymentButtons(
+            onPaymentSuccess = {
+                dialogType = "SUCCESS"
+                showDialog = true
+            },
+            onPaymentFailure = {
+                dialogType = "FAILURE"
+                showDialog = true
+            }
+        )
+
+        // Show DismissibleAlertDialog based on dialogType
+        if (showDialog) {
+            DismissibleAlertDialog(
+                onDismiss = {
+                    // Handle dismissal based on dialog type
+                    val message = if (dialogType == "SUCCESS") "Payment Successful" else "Payment Failed"
+                    val activityClass = if (dialogType == "SUCCESS") PaymentSuccessActivity::class.java else PaymentFailedActivity::class.java
+
+                    // Prepare details
+                    val payeeName = "John Doe"
+                    val amount = "500"
+                    val date = "26 Dec, 2024"
+                    val time = "10:30 AM"
+                    val txnId = "TXN20241226"
+
+                    // Show toast message
+                    showToast(context, message)
+
+                    // Navigate to the appropriate activity
+                    val intent = Intent(context, activityClass).apply {
+                        putExtra("SUCCESS_MESSAGE", message)
+                        putExtra("PAYEE_NAME", payeeName)
+                        putExtra("AMOUNT", amount)
+                        putExtra("DATE", date)
+                        putExtra("TIME", time)
+                        putExtra("TXN_ID", txnId)
+                    }
+                    context.startActivity(intent)
+
+                    // Close the dialog
+                    showDialog = false
+                },
+                companyName = "Softmint Technologies",
+                payingTo = "John Doe",
+                amount = "500"
+            )
+        }
+    }
+}
+
+@Composable
 fun PaymentButtons(
     onPaymentSuccess: () -> Unit,
     onPaymentFailure: () -> Unit
 ) {
     Row(
-        modifier = Modifier.padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Button(
-            onClick = onPaymentSuccess,
-            modifier = Modifier
-                .padding(vertical = 8.dp)
-                .weight(1f)
-        ) {
-            Text(text = "Payment Success")
+        Button(onClick = onPaymentSuccess) {
+            Text("Simulate Success")
         }
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Button(
-            onClick = onPaymentFailure,
-            modifier = Modifier
-                .padding(vertical = 8.dp)
-                .weight(1f)
-        ) {
-            Text(text = "Payment Failure")
+        Button(onClick = onPaymentFailure) {
+            Text("Simulate Failure")
         }
     }
 }
-
 
 
 

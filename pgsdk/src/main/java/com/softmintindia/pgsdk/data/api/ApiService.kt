@@ -7,13 +7,15 @@ import retrofit2.http.*
 
 interface ApiService {
 
-
     @POST(ApiEndpoints.PGSDK_INITIALIZE)
     fun pgsdkInitialize(
         @HeaderMap map: Map<String, String>,
         @Body requestBody: ApiRequests.PgsdkInitRequest,
     ): Call<PgsdkInitResponse>
 
-    @GET(ApiEndpoints.CHECK_TXN_STATUS)
-    fun checkTxnStatus(): Call<CheckTxnStatusResponse>
+    @POST(ApiEndpoints.CHECK_TXN_STATUS)
+    fun checkTxnStatus(
+        @HeaderMap map: Map<String, String>,
+        @Body requestBody: ApiRequests.CheckTxnRequest,
+    ): Call<CheckTxnStatusResponse>
 }

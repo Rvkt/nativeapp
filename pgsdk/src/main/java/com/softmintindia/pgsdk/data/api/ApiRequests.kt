@@ -8,4 +8,8 @@ class ApiRequests {
         val identifier: String,
         val orderId: String
     )
+
+    data class CheckTxnRequest(
+        val orderId: String
+    )
 }

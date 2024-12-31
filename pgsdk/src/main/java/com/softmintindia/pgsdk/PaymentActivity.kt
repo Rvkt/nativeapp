@@ -2,6 +2,7 @@ package com.softmintindia.pgsdk
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -72,6 +73,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -99,10 +101,23 @@ import androidx.compose.ui.unit.sp
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.common.BitMatrix
+import androidx.compose.runtime.*
+import kotlinx.coroutines.*
 import com.journeyapps.barcodescanner.BarcodeEncoder
+import com.softmintindia.app.data.ApiImplementation
+import com.softmintindia.pgsdk.PGSDKManager.TAG
+import com.softmintindia.pgsdk.data.api.ApiClient
+import com.softmintindia.pgsdk.data.api.ApiHeaders
+import com.softmintindia.pgsdk.data.api.ApiRequests
+import com.softmintindia.pgsdk.domain.CheckTxnStatusResponse
+import com.softmintindia.pgsdk.domain.PgsdkInitResponse
 import com.softmintindia.pgsdk.ui.theme.AppTheme
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 
 class PaymentActivity : ComponentActivity() {
@@ -115,15 +130,22 @@ class PaymentActivity : ComponentActivity() {
         val amount = intent.getStringExtra("AMOUNT") ?: "0.00"
         val upiUrl = intent.getStringExtra("UPI_URL") ?: ""
 
+
+        val txnId = intent.getStringExtra("ORDER_ID") ?: ""
+
         // Retrieve the service flags
         val qrService = intent.getBooleanExtra("QR_SERVICE", false)
         val raiseRequest = intent.getBooleanExtra("RAISE_REQUEST", false)
         val intentRequest = intent.getBooleanExtra("INTENT_REQUEST", false)
 
+
+
 //        Log.d(
 //            "PaymentActivity",
 //            "Company: $companyName, Amount: $amount, UPI URL: $upiUrl, QR Service: $qrService, Raise Request: $raiseRequest, Intent Request: $intentRequest"
 //        )
+
+
 
 
         enableEdgeToEdge()
@@ -146,6 +168,7 @@ class PaymentActivity : ComponentActivity() {
                         companyName = companyName,
                         amount = amount,
                         upiUrl = upiUrl,
+                        txnId = txnId,
                         qrService = qrService,
                         raiseRequest = raiseRequest,
                         intentRequest = intentRequest,
@@ -156,7 +179,11 @@ class PaymentActivity : ComponentActivity() {
             }
         }
     }
+
+
 }
+
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -238,6 +265,7 @@ fun LargeTopAppBar(companyName: String, amount: String) {
 fun MainContent(
     modifier: Modifier = Modifier,
     companyName: String,
+    txnId: String,
     amount: String,
     upiUrl: String,
     qrService: Boolean,
@@ -262,6 +290,7 @@ fun MainContent(
                 iconResourceId = R.drawable.ic_qrcode,
                 showExpanded = remember { mutableStateOf(!raiseRequest && !intentRequest) },
                 upiId = upiUrl,
+                txnId = txnId,
                 activity = activity
             )
         }
@@ -440,7 +469,6 @@ fun RecommendedUPIApps() {
 
             if (result.resultCode == Activity.RESULT_OK) {
                 val data = result.data
-//                val upiResult = data?.getStringExtra("response") ?: ""
                 paymentHelper.handleUpiPaymentResponse(context, data)
             } else {
                 Toast.makeText(context, "Transaction failed or canceled.", Toast.LENGTH_SHORT)
@@ -549,16 +577,20 @@ private fun generateQRCode(content: String): Bitmap? {
 }
 
 
+
 @SuppressLint("RememberReturnType", "DefaultLocale")
 @Composable
 fun QRExpansionTile(
     title: String,
+    txnId: String,
     iconResourceId: Int,
     upiId: String,
     showExpanded: MutableState<Boolean>,
     activity: ComponentActivity
 ) {
 
+    val context = LocalContext.current as? Activity
+    val paymentHelper = PaymentHelper()
 
     // Generate the QR code bitmap
     val qrCodeBitmap = generateQRCode(upiId)
@@ -567,24 +599,57 @@ fun QRExpansionTile(
     var timeLeft by remember { mutableStateOf(5 * 60 * 1000L) } // 5 minutes in milliseconds
     var formattedTime by remember { mutableStateOf("05:00") }
 
+    // A flag to ensure LaunchedEffect runs only once
+    val isTimerStarted = remember { mutableStateOf(false) }
+
     // Timer countdown logic using LaunchedEffect
     LaunchedEffect(key1 = timeLeft) {
-        if (timeLeft > 0) {
-            launch {
-                delay(1000L)
-                timeLeft -= 1000L
-                formattedTime =
-                    String.format("%02d:%02d", timeLeft / 60000, (timeLeft % 60000) / 1000)
-            }
-        } else {
+        if (timeLeft > 0 && !isTimerStarted.value) {
+            isTimerStarted.value = true
 
-            // todo: close the activity
-            // Close the activity when time reaches zero
-            activity.finish()
+            // Launch a coroutine to handle the timer
+            launch {
+                while (timeLeft > 0) {
+                    delay(10000L) // Wait for 10 seconds before checking again
+                    timeLeft -= 10000L // Decrement the timer by 10 seconds
+
+                    // Update the formatted time
+                    formattedTime = String.format("%02d:%02d", timeLeft / 60000, (timeLeft % 60000) / 1000)
+
+                    // Call the transaction status check method
+                    if (context != null) {
+
+                        // todo: close on call back
+//                        paymentHelper.checkTxnStatus(context, orderId = txnId, checkStatusCallback = ())
+
+                        paymentHelper.checkTxnStatus(context, orderId = txnId) { isSuccess, message ->
+                            // Handle success or failure based on the values of isSuccess and message
+                            if (isSuccess) {
+                                // If the transaction is successful, finish the activity and cancel the timer
+                                activity.finish()
+                                // Handle success case
+                                Log.d("Payment", "Transaction was successful: $message")
+                            } else {
+                                // If the transaction failed, finish the activity
+                                activity.finish()
+                                // Handle failure case
+                                Log.e("Payment", "Transaction failed: $message")
+                            }
+                        }
+                    }
+
+                    Log.d("Check TXN Status", "Time Left: $timeLeft, Formatted Time: $formattedTime")
+                }
+
+                // If time reaches 0, finish the activity
+                if (timeLeft <= 0) {
+                    activity.finish()
+                }
+            }
         }
     }
 
-
+    // UI for the QR code and timer
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -617,7 +682,6 @@ fun QRExpansionTile(
             colors = CardDefaults.cardColors(
                 containerColor = Color.White
             )
-
         ) {
             Column(
                 modifier = Modifier.padding(vertical = 8.dp)
@@ -694,11 +758,13 @@ fun QRExpansionTile(
                         .padding(top = 16.dp)
                         .align(Alignment.CenterHorizontally) // Center-align the text
                 )
-
             }
         }
     }
 }
+
+
+
 
 @Composable
 fun InputFieldWithSubmit(title: String, iconResourceId: Int) {
@@ -925,7 +991,7 @@ fun UPIValidationForm() {
                 payingTo = "John Doe",
                 amount = "500",
                 companyName = "Clients Company's Name",
-                imageResource = R.drawable.ic_paytm
+                imageResource = R.drawable.ic_softmint
             )
 
         }

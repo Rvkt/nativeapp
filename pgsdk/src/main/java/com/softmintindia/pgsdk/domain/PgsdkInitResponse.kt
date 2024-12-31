@@ -12,7 +12,7 @@ data class PgsdkInitResponse(
         val raiseRequest: Boolean,
         val qrString: String,
         val intentString: String,
-        val orderID: String,
+        val orderId: String,
         val amount: String,
         val remark: String,
         val identifire: String,

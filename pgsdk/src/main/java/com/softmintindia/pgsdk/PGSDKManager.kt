@@ -66,7 +66,7 @@ object PGSDKManager {
                 }
 
                 // Call the payment API and handle the response
-                callPaymentApi(context, amount, remark, orderId, identifier)
+                callPaymentApi(context,  remark, identifier, orderId, amount, callback)
 
             } catch (e: Exception) {
                 Log.e(TAG, "Initialization error: ${e.message}", e)
@@ -82,6 +82,7 @@ object PGSDKManager {
         identifier: String,
         orderId: String,
         amount: String,
+        sdkCallBack: (Boolean, String) -> Unit,
     ) {
         try {
 
@@ -95,12 +96,13 @@ object PGSDKManager {
                     val data = responseData?.data
                     Log.d(TAG, "Success: $data")
                     if (data != null) {
+                        sdkCallBack(true, data.remark)
                         startPaymentActivity(
                             context,
                             data.companyName,
                             data.amount,
                             data.qrString,
-                            data.orderID,
+                            data.orderId,
                             data.qrRequest,
                             data.raiseRequest,
                             data.intentRequest
@@ -109,7 +111,11 @@ object PGSDKManager {
                         showErrorActivity(context, responseData?.errorMessage.toString())
                     }
                 } else {
-                    showErrorActivity(context, responseData?.errorMessage.toString())
+
+                    if (message != null) {
+                        sdkCallBack(false, message)
+                        showErrorActivity(context, message)
+                    }
 //                    if (responseData != null) {
 //                        showErrorActivity(context, responseData.message)
 //                    }
@@ -140,7 +146,7 @@ object PGSDKManager {
                     }
 
                     override fun onFailure(call: Call<PgsdkInitResponse>, t: Throwable) {
-                        callback.onError("Network call failed: ${t.message}")
+                        callback.onError("${t.message}")
                     }
                 })
         } catch (e: Exception) {
@@ -166,6 +172,8 @@ object PGSDKManager {
             putExtra("QR_SERVICE", qrService)
             putExtra("RAISE_REQUEST", raiseRequest)
             putExtra("INTENT_REQUEST", intentRequest)
+
+//            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         context.startActivity(intent)
     }

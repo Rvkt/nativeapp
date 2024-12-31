@@ -66,6 +66,12 @@ class PaymentFailedActivity : ComponentActivity() {
         val dateFormatter = DateTimeFormatter.ofPattern("d MMM, yyyy")
         val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
 
+        val payeeName = intent.getStringExtra("PAYEE_NAME") ?: "Unknown Payee"
+        val amount = intent.getStringExtra("AMOUNT") ?: "N/A"
+        val date = intent.getStringExtra("DATE") ?: "N/A"
+        val time = intent.getStringExtra("TIME") ?: "N/A"
+        val txnId = intent.getStringExtra("TXN_ID") ?: "N/A"
+
         // Set system UI visibility to non-transparent
         window.statusBarColor = Color(0xFF3F51B5).toArgb()
         window.navigationBarColor = Color(0xFF3F51B5).toArgb()
@@ -155,7 +161,7 @@ class PaymentFailedActivity : ComponentActivity() {
                                     ) {
                                         Column {
                                             Text(
-                                                text = "ACPL", fontSize = 20.sp,
+                                                text = payeeName, fontSize = 20.sp,
                                                 fontFamily = FontFamily.SansSerif,
                                                 fontWeight = FontWeight.Bold,
                                                 color = Color.DarkGray,
@@ -176,7 +182,7 @@ class PaymentFailedActivity : ComponentActivity() {
                                             )
                                         }
                                         Text(
-                                            text = "₹ 500", fontSize = 20.sp,
+                                            text = "₹ $amount", fontSize = 20.sp,
                                             fontFamily = FontFamily.Monospace,
                                             fontWeight = FontWeight.Bold,
                                             color = Color.DarkGray,
@@ -199,7 +205,7 @@ class PaymentFailedActivity : ComponentActivity() {
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
-                                            text = "TXN20241226",
+                                            text = txnId,
                                             fontSize = 16.sp,
                                             fontFamily = FontFamily.SansSerif,
                                             fontWeight = FontWeight.Normal,
