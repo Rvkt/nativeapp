@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -36,6 +37,7 @@ import com.softmintindia.app.domain.models.PgsdkInitRequest
 import com.softmintindia.app.domain.models.PgsdkInitResponse
 import com.softmintindia.app.presentation.InstalledAppsList
 import com.softmintindia.app.presentation.showToast
+import com.softmintindia.pgsdk.PGSDKManager
 import com.softmintindia.pgsdk.network.models.AuthenticationResponse
 import retrofit2.Call
 import retrofit2.Callback
@@ -96,32 +98,33 @@ class MainActivity : ComponentActivity() {
                             Button(
                                 onClick = {
 
-                                    this@MainActivity.initiateUpiTxn("100.00", "Initiate UPI Transaction", identifier = "TEST SDK", orderId = "TXN20241230174410");
-//                                    PGSDKManager.initialize(
-//                                        context = this@MainActivity,
-//                                        apiKey = "123456",
-//                                        amount = "100.00",
-//                                        remark = "SDK Initialization"
-//                                    ) { success, message ->
-//                                        if (success) {
-//                                            // Initialization successful, PaymentActivity will start automatically
-//                                            Log.d("MainActivity", message)
-//                                            Toast.makeText(
-//                                                this@MainActivity,
-//                                                "Initialization successful",
-//                                                Toast.LENGTH_SHORT
-//                                            ).show()
-//                                        } else {
-//                                            // Handle initialization failure
-//                                            Log.e("MainActivity", message)
-//                                            // Show a toast saying "Initialization failed"
-//                                            Toast.makeText(
-//                                                this@MainActivity,
-//                                                "Initialization failed, $message",
-//                                                Toast.LENGTH_SHORT
-//                                            ).show()
-//                                        }
-//                                    }
+//                                    this@MainActivity.initiateUpiTxn("100.00", "Initiate UPI Transaction", identifier = "TEST SDK", orderId = "TXN20241230174410");
+                                    PGSDKManager.initialize(
+                                        context = this@MainActivity,
+                                        amount = "100.00",
+                                        remark = "SDK Initialization",
+                                        identifier = "SDK Initialization",
+                                        orderId = "TXN20241230174410"
+                                    ) { success, message ->
+                                        if (success) {
+                                            // Initialization successful, PaymentActivity will start automatically
+                                            Log.d("MainActivity", message)
+                                            Toast.makeText(
+                                                this@MainActivity,
+                                                "Initialization successful",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        } else {
+                                            // Handle initialization failure
+                                            Log.e("MainActivity", message)
+                                            // Show a toast saying "Initialization failed"
+                                            Toast.makeText(
+                                                this@MainActivity,
+                                                "Initialization failed, $message",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
                                 },
                                 modifier = Modifier.fillMaxWidth().padding(16.dp)
                             ) {
@@ -131,26 +134,26 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
 
-                            LoginButtons(
-                                onLoginClick = {
-                                    this@MainActivity.makePostApiCall(
-                                        userName = "9999726418",
-                                        password = "",
-                                        source = "SDK",
-                                        mode = "VIA_MOBILE",
-                                        otp = ""
-                                    )
-                                },
-                                onSubmitOtpClick = {
-                                    this@MainActivity.submitOtp(
-                                        userName = "9999726418",
-                                        password = "",
-                                        source = "SDK",
-                                        mode = "VIA_MOBILE",
-                                        otp = "111111"
-                                    )
-                                }
-                            )
+//                            LoginButtons(
+//                                onLoginClick = {
+//                                    this@MainActivity.makePostApiCall(
+//                                        userName = "9999726418",
+//                                        password = "",
+//                                        source = "SDK",
+//                                        mode = "VIA_MOBILE",
+//                                        otp = ""
+//                                    )
+//                                },
+//                                onSubmitOtpClick = {
+//                                    this@MainActivity.submitOtp(
+//                                        userName = "9999726418",
+//                                        password = "",
+//                                        source = "SDK",
+//                                        mode = "VIA_MOBILE",
+//                                        otp = "111111"
+//                                    )
+//                                }
+//                            )
 
 
 
@@ -223,176 +226,176 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun makePostApiCall(
-        userName: String,
-        password: String,
-        source: String,
-        mode: String,
-        otp: String
-    ) {
-        // Request body map
-        val requestBody = mapOf(
-            "userName" to userName,
-            "password" to password,
-            "source" to source,
-            "mode" to mode,
-            "otp" to otp
-        )
+//    private fun makePostApiCall(
+//        userName: String,
+//        password: String,
+//        source: String,
+//        mode: String,
+//        otp: String
+//    ) {
+//        // Request body map
+//        val requestBody = mapOf(
+//            "userName" to userName,
+//            "password" to password,
+//            "source" to source,
+//            "mode" to mode,
+//            "otp" to otp
+//        )
+//
+//        val header = ApiHeaders.deviceIdHeader(context = this@MainActivity).toString()
+//
+//        val callback = ApiCallback<AuthenticationResponse> { success, data, message ->
+//            if (success) {
+//                Log.d("Response", "Success: $data")
+//
+//                if (data != null) {
+//                    if (data.status.toInt() == 6) {
+//                        Log.d("ApiCallback", "makePostApiCall: ${data.message}")
+//                    } else if (data.status.toInt() == 1) {
+//                        Log.d("ApiCallback", "makePostApiCall Submit OTP: ${data.message}")
+//                    }
+//                }
+//
+//            } else {
+//                Log.e("Error", "Failure: $message")
+//            }
+//        }
+//
+//
+//        ApiClient.apiService.authenticateUser(header, requestBody = requestBody)
+//            .enqueue(object : Callback<AuthenticationResponse> {
+//                override fun onResponse(
+//                    call: Call<AuthenticationResponse>,
+//                    response: Response<AuthenticationResponse>
+//                ) {
+//                    if (response.isSuccessful) {
+//                        val responseBody = response.body()
+//                        responseBody?.let {
+//                            Log.d("Authenticate User", "\n$it")
+//                            callback.onSuccess(it)
+//                        }
+//                    } else {
+//                        callback.onError("Response unsuccessful: ${response.errorBody()?.string()}")
+//                    }
+//                }
+//
+//                override fun onFailure(call: Call<AuthenticationResponse>, t: Throwable) {
+//                    callback.onError("Network call failed: ${t.message}")
+//                }
+//            })
+//    }
 
-        val header = ApiHeaders.deviceIdHeader(context = this@MainActivity).toString()
+//    private fun submitOtp(
+//        userName: String,
+//        password: String,
+//        source: String,
+//        mode: String,
+//        otp: String
+//    ) {
+//        // Request body map
+//        val requestBody = mapOf(
+//            "userName" to userName,
+//            "password" to password,
+//            "source" to source,
+//            "mode" to mode,
+//            "otp" to otp
+//        )
+//
+//        val header = ApiHeaders.deviceIdHeader(context = this@MainActivity).toString()
+//
+//        val callback = ApiCallback<AuthenticatedResponse> { success, data, message ->
+//            if (success) {
+//                Log.d("Response", "Success: $data")
+//
+//                if (data != null) {
+//                    if (data.status.toInt() == 6) {
+//                        Log.d("ApiCallback", "makePostApiCall: ${data.message}")
+//                    } else if (data.status.toInt() == 1) {
+//                        Log.d("ApiCallback", "makePostApiCall Submit OTP: ${data.message}")
+//                    }
+//                }
+//
+//            } else {
+//                Log.e("Error", "Failure: $message")
+//            }
+//        }
+//
+//
+//        ApiClient.apiService.verifyUser(header, requestBody = requestBody)
+//            .enqueue(object : Callback<AuthenticatedResponse> {
+//                override fun onResponse(
+//                    call: Call<AuthenticatedResponse>,
+//                    response: Response<AuthenticatedResponse>
+//                ) {
+//                    if (response.isSuccessful) {
+//                        val responseBody = response.body()
+//                        responseBody?.let {
+//                            Log.d("Authenticate User", "\n$it")
+//                            callback.onSuccess(it)
+//                        }
+//                    } else {
+//                        callback.onError("Response unsuccessful: ${response.errorBody()?.string()}")
+//                    }
+//                }
+//
+//
+//                override fun onFailure(call: Call<AuthenticatedResponse>, t: Throwable) {
+//                    callback.onError("Failed: ${t.message}")
+//                }
+//            })
+//    }
 
-        val callback = ApiCallback<AuthenticationResponse> { success, data, message ->
-            if (success) {
-                Log.d("Response", "Success: $data")
-
-                if (data != null) {
-                    if (data.status.toInt() == 6) {
-                        Log.d("ApiCallback", "makePostApiCall: ${data.message}")
-                    } else if (data.status.toInt() == 1) {
-                        Log.d("ApiCallback", "makePostApiCall Submit OTP: ${data.message}")
-                    }
-                }
-
-            } else {
-                Log.e("Error", "Failure: $message")
-            }
-        }
-
-
-        ApiClient.apiService.authenticateUser(header, requestBody = requestBody)
-            .enqueue(object : Callback<AuthenticationResponse> {
-                override fun onResponse(
-                    call: Call<AuthenticationResponse>,
-                    response: Response<AuthenticationResponse>
-                ) {
-                    if (response.isSuccessful) {
-                        val responseBody = response.body()
-                        responseBody?.let {
-                            Log.d("Authenticate User", "\n$it")
-                            callback.onSuccess(it)
-                        }
-                    } else {
-                        callback.onError("Response unsuccessful: ${response.errorBody()?.string()}")
-                    }
-                }
-
-                override fun onFailure(call: Call<AuthenticationResponse>, t: Throwable) {
-                    callback.onError("Network call failed: ${t.message}")
-                }
-            })
-    }
-
-    private fun submitOtp(
-        userName: String,
-        password: String,
-        source: String,
-        mode: String,
-        otp: String
-    ) {
-        // Request body map
-        val requestBody = mapOf(
-            "userName" to userName,
-            "password" to password,
-            "source" to source,
-            "mode" to mode,
-            "otp" to otp
-        )
-
-        val header = ApiHeaders.deviceIdHeader(context = this@MainActivity).toString()
-
-        val callback = ApiCallback<AuthenticatedResponse> { success, data, message ->
-            if (success) {
-                Log.d("Response", "Success: $data")
-
-                if (data != null) {
-                    if (data.status.toInt() == 6) {
-                        Log.d("ApiCallback", "makePostApiCall: ${data.message}")
-                    } else if (data.status.toInt() == 1) {
-                        Log.d("ApiCallback", "makePostApiCall Submit OTP: ${data.message}")
-                    }
-                }
-
-            } else {
-                Log.e("Error", "Failure: $message")
-            }
-        }
-
-
-        ApiClient.apiService.verifyUser(header, requestBody = requestBody)
-            .enqueue(object : Callback<AuthenticatedResponse> {
-                override fun onResponse(
-                    call: Call<AuthenticatedResponse>,
-                    response: Response<AuthenticatedResponse>
-                ) {
-                    if (response.isSuccessful) {
-                        val responseBody = response.body()
-                        responseBody?.let {
-                            Log.d("Authenticate User", "\n$it")
-                            callback.onSuccess(it)
-                        }
-                    } else {
-                        callback.onError("Response unsuccessful: ${response.errorBody()?.string()}")
-                    }
-                }
-
-
-                override fun onFailure(call: Call<AuthenticatedResponse>, t: Throwable) {
-                    callback.onError("Failed: ${t.message}")
-                }
-            })
-    }
-
-    private fun initiateUpiTxn(
-        amount: String,
-        remark: String,
-        identifier: String,
-        orderId: String,
-    ) {
-        // Request body map
-        val requestBody = PgsdkInitRequest(amount, remark, identifier, orderId);
-
-        val header = ApiHeaders.withToken(context = this@MainActivity)
-
-        val callback = ApiCallback<PgsdkInitResponse> { success, data, message ->
-            if (success) {
-                Log.d("Response", "Success: $data")
-
-                if (data != null) {
-                    if (data.status.toInt() == 6) {
-                        Log.d("ApiCallback", "makePostApiCall: ${data.message}")
-                    } else if (data.status.toInt() == 1) {
-                        Log.d("ApiCallback", "makePostApiCall Submit OTP: ${data.data}")
-                    }
-                }
-
-            } else {
-                Log.e("Error", "Failure: $message")
-            }
-        }
-
-
-        ApiClient.apiService.pgsdkInitialize(header, requestBody = requestBody)
-            .enqueue(object : Callback<PgsdkInitResponse> {
-                override fun onResponse(
-                    call: Call<PgsdkInitResponse>,
-                    response: Response<PgsdkInitResponse>
-                ) {
-                    if (response.isSuccessful) {
-                        val responseBody = response.body()
-                        responseBody?.let {
-                            Log.d("Authenticate User", "\n$it")
-                            callback.onSuccess(it)
-                        }
-                    } else {
-                        callback.onError("Response unsuccessful: ${response.errorBody()?.string()}")
-                    }
-                }
-
-                override fun onFailure(call: Call<PgsdkInitResponse>, t: Throwable) {
-                    callback.onError("Network call failed: ${t.message}")
-                }
-            })
-    }
+//    private fun initiateUpiTxn(
+//        amount: String,
+//        remark: String,
+//        identifier: String,
+//        orderId: String,
+//    ) {
+//        // Request body map
+//        val requestBody = PgsdkInitRequest(amount, remark, identifier, orderId);
+//
+//        val header = ApiHeaders.withToken(context = this@MainActivity)
+//
+//        val callback = ApiCallback<PgsdkInitResponse> { success, data, message ->
+//            if (success) {
+//                Log.d("Response", "Success: $data")
+//
+//                if (data != null) {
+//                    if (data.status.toInt() == 6) {
+//                        Log.d("ApiCallback", "makePostApiCall: ${data.message}")
+//                    } else if (data.status.toInt() == 1) {
+//                        Log.d("ApiCallback", "makePostApiCall Submit OTP: ${data.data}")
+//                    }
+//                }
+//
+//            } else {
+//                Log.e("Error", "Failure: $message")
+//            }
+//        }
+//
+//
+//        ApiClient.apiService.pgsdkInitialize(header, requestBody = requestBody)
+//            .enqueue(object : Callback<PgsdkInitResponse> {
+//                override fun onResponse(
+//                    call: Call<PgsdkInitResponse>,
+//                    response: Response<PgsdkInitResponse>
+//                ) {
+//                    if (response.isSuccessful) {
+//                        val responseBody = response.body()
+//                        responseBody?.let {
+//                            Log.d("Authenticate User", "\n$it")
+//                            callback.onSuccess(it)
+//                        }
+//                    } else {
+//                        callback.onError("Response unsuccessful: ${response.errorBody()?.string()}")
+//                    }
+//                }
+//
+//                override fun onFailure(call: Call<PgsdkInitResponse>, t: Throwable) {
+//                    callback.onError("Network call failed: ${t.message}")
+//                }
+//            })
+//    }
 
 }
 

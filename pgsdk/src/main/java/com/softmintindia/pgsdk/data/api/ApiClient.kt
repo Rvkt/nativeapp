@@ -3,11 +3,11 @@ package com.softmintindia.pgsdk.data.api
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-object RetrofitInstance {
+object ApiClient {
 
     // Base URL for the API
 //    private const val BASE_URL = "https://m.easyswift.in/"
-    private const val BASE_URL = "http://192.168.1.31:8088/softmint-upi//"
+    private const val BASE_URL = "http://192.168.1.31:8088/softmint-upi/"
 
     // Initialize the Retrofit instance
     private val retrofit: Retrofit by lazy {
@@ -18,7 +18,7 @@ object RetrofitInstance {
     }
 
     // Lazy initialization of the API interface
-    val apiInterface: ApiInterface by lazy {
-        retrofit.create(ApiInterface::class.java)
+    val apiService: ApiService by lazy {
+        retrofit.create(ApiService::class.java)
     }
 }
