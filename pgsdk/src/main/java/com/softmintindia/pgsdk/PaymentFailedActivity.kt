@@ -49,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.softmintindia.pgsdk.Utils.copyToClipboard
 import com.softmintindia.pgsdk.ui.theme.AppTheme
 import kotlinx.coroutines.delay
 import java.time.LocalDateTime
@@ -59,18 +60,27 @@ class PaymentFailedActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val successMessage =
-            intent.getStringExtra("SUCCESS_MESSAGE") ?: "Payment completed successfully!"
+//        val successMessage =
+//            intent.getStringExtra("SUCCESS_MESSAGE") ?: "Payment completed successfully!"
 
-        val currentDateTime = LocalDateTime.now()
-        val dateFormatter = DateTimeFormatter.ofPattern("d MMM, yyyy")
-        val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
+//        val currentDateTime = LocalDateTime.now()
+//        val dateFormatter = DateTimeFormatter.ofPattern("d MMM, yyyy")
+//        val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
 
+//        val payeeName = intent.getStringExtra("PAYEE_NAME") ?: "Unknown Payee"
+//        val amount = intent.getStringExtra("AMOUNT") ?: "N/A"
+//        val date = intent.getStringExtra("DATE") ?: "N/A"
+//        val time = intent.getStringExtra("TIME") ?: "N/A"
+//        val txnId = intent.getStringExtra("TXN_ID") ?: "N/A"
+
+        val remark = intent.getStringExtra("REMARK") ?: "Payment completed successfully!"
         val payeeName = intent.getStringExtra("PAYEE_NAME") ?: "Unknown Payee"
         val amount = intent.getStringExtra("AMOUNT") ?: "N/A"
         val date = intent.getStringExtra("DATE") ?: "N/A"
         val time = intent.getStringExtra("TIME") ?: "N/A"
         val txnId = intent.getStringExtra("TXN_ID") ?: "N/A"
+        val rrn = intent.getStringExtra("RRN") ?: "N/A"
+
 
         // Set system UI visibility to non-transparent
         window.statusBarColor = Color(0xFF3F51B5).toArgb()
@@ -143,12 +153,12 @@ class PaymentFailedActivity : ComponentActivity() {
                                 modifier = Modifier
                                     .size(120.dp)
                             )
-//                            Spacer(modifier = Modifier.height(16.dp))
-//                            Text(
-//                                text = successMessage,
-//                                fontSize = 16.sp,
-//                                color = MaterialTheme.colorScheme.onBackground // Color adapts to light/dark mode
-//                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = remark,
+                                fontSize = 16.sp,
+                                color = Color.White
+                            )
                             Spacer(modifier = Modifier.weight(1f))
 
                             Card {
@@ -169,11 +179,7 @@ class PaymentFailedActivity : ComponentActivity() {
                                             )
                                             Spacer(modifier = Modifier.height(4.dp))
                                             Text(
-                                                text = "${currentDateTime.format(timeFormatter)}  ${
-                                                    currentDateTime.format(
-                                                        dateFormatter
-                                                    )
-                                                }",
+                                                text = "$date $time",
                                                 fontSize = 16.sp,
                                                 fontFamily = FontFamily.SansSerif,
                                                 fontWeight = FontWeight.Normal,
@@ -193,43 +199,56 @@ class PaymentFailedActivity : ComponentActivity() {
                                     Row(
                                         Modifier
                                             .fillMaxWidth()
-                                            .padding(24.dp),
+                                            .padding(start = 24.dp, top = 24.dp, bottom = 0.dp)
                                     ) {
                                         Text(
-                                            text = "TXN ID:",
+                                            text = "TXN ID:", // Transaction ID label
                                             fontSize = 16.sp,
-                                            fontFamily = FontFamily.SansSerif,
                                             fontWeight = FontWeight.Bold,
-                                            color = Color.DarkGray,
-                                            textAlign = TextAlign.Start
+                                            color = Color.DarkGray
                                         )
-                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Spacer(modifier = Modifier.width(8.dp)) // Add space
                                         Text(
-                                            text = txnId,
-                                            fontSize = 16.sp,
-                                            fontFamily = FontFamily.SansSerif,
-                                            fontWeight = FontWeight.Normal,
-                                            color = Color.DarkGray,
-                                            textAlign = TextAlign.Start
+                                            text = txnId, // Display transaction ID
+                                            fontSize = 16.sp, color = Color.DarkGray
                                         )
-                                        Spacer(modifier = Modifier.width(16.dp))
-                                        // IconButton to copy UPI to clipboard
-//                                    IconButton(
-//                                        onClick = { copyToClipboard(this@PaymentSuccessActivity, "upiString") }
-//                                    ) {
-//                                        Icon(
-//                                            imageVector = Icons.Outlined.Add,
-//                                            contentDescription = "Copy UPI",
-//                                            tint = Color.Gray
-//                                        )
-//                                    }
+                                        Spacer(modifier = Modifier.width(16.dp)) // Add space
 
-                                        Image(
-                                            painter = painterResource(id = R.drawable.ic_copy), // Replace with your image resource
+                                        // Add an icon to copy the UPI string to the clipboard
+                                        Image(painter = painterResource(id = R.drawable.ic_copy),
                                             contentDescription = "Copy UPI",
                                             modifier = Modifier
                                                 .size(16.dp)
                                                 .clickable {
+                                                    copyToClipboard(this@PaymentFailedActivity, "TXN ID", txnId)
+                                                }
+                                        )
+                                    }
+                                    Row(
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(start = 24.dp, bottom = 24.dp, top = 12.dp)
+                                    ) {
+                                        Text(
+                                            text = "RRN:", // Transaction ID label
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.DarkGray
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp)) // Add space
+                                        Text(
+                                            text = rrn, // Display transaction ID
+                                            fontSize = 16.sp, color = Color.DarkGray
+                                        )
+                                        Spacer(modifier = Modifier.width(16.dp)) // Add space
+
+                                        // Add an icon to copy the UPI string to the clipboard
+                                        Image(painter = painterResource(id = R.drawable.ic_copy),
+                                            contentDescription = "Copy UPI",
+                                            modifier = Modifier
+                                                .size(16.dp)
+                                                .clickable {
+                                                    copyToClipboard(this@PaymentFailedActivity, "RRN", rrn)
                                                 }
                                         )
                                     }

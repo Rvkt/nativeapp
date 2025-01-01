@@ -52,6 +52,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.softmintindia.pgsdk.Utils.copyToClipboard
 import com.softmintindia.pgsdk.ui.theme.AppTheme
 import kotlinx.coroutines.delay
 import java.time.LocalDateTime
@@ -66,19 +67,30 @@ class PaymentSuccessActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         // Get the success message passed from the intent or use a default message
-        val successMessage =
-            intent.getStringExtra("SUCCESS_MESSAGE") ?: "Payment completed successfully!"
+//        val successMessage =
+//            intent.getStringExtra("SUCCESS_MESSAGE") ?: "Payment completed successfully!"
+        //        val payeeName = intent.getStringExtra("PAYEE_NAME") ?: "Unknown Payee"
+//        val amount = intent.getStringExtra("AMOUNT") ?: "N/A"
+//        val date = intent.getStringExtra("DATE") ?: "N/A"
+//        val time = intent.getStringExtra("TIME") ?: "N/A"
+//        val txnId = intent.getStringExtra("TXN_ID") ?: "N/A"
+
+
 
         // Get the current date and time
         val currentDateTime = LocalDateTime.now()
         val dateFormatter = DateTimeFormatter.ofPattern("d MMM, yyyy")
         val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
 
+
+        val successMessage = intent.getStringExtra("REMARK") ?: "Payment completed successfully!"
         val payeeName = intent.getStringExtra("PAYEE_NAME") ?: "Unknown Payee"
         val amount = intent.getStringExtra("AMOUNT") ?: "N/A"
-        val date = intent.getStringExtra("DATE") ?: "N/A"
-        val time = intent.getStringExtra("TIME") ?: "N/A"
+        val date = intent.getStringExtra("DATE") ?: "2025-01-01"
+        val time = intent.getStringExtra("TIME") ?: "06:10:23 PM"
         val txnId = intent.getStringExtra("TXN_ID") ?: "N/A"
+        val rrn = intent.getStringExtra("RRN") ?: "N/A"
+
 
         // Set the status bar and navigation bar colors to a specific shade of blue
         window.statusBarColor = Color(0xFF3F51B5).toArgb()
@@ -90,15 +102,14 @@ class PaymentSuccessActivity : ComponentActivity() {
         // Automatically finish the activity after 10 seconds
         Handler(Looper.getMainLooper()).postDelayed({
             // Uncomment the following line to finish the activity
-            finish()
+//            finish()
         }, 10000)
 
         // Set the UI content of the activity using Jetpack Compose
         setContent {
             AppTheme {
                 // Create a scaffold structure with a top app bar and dynamic container color
-                Scaffold(
-                    containerColor = Color(0xFF3F51B5), // Set a fixed container color
+                Scaffold(containerColor = Color(0xFF3F51B5), // Set a fixed container color
                     topBar = { AppBar() } // Add the custom AppBar at the top
                 ) {
                     // Center content inside a Box layout
@@ -116,7 +127,7 @@ class PaymentSuccessActivity : ComponentActivity() {
                                 timerState.intValue -= 1 // Decrement the timer
                             }
                             // Uncomment to finish the activity after timer ends
-                            // finish()
+                             finish()
                         }
 
                         // Column to arrange the UI elements vertically
@@ -124,8 +135,7 @@ class PaymentSuccessActivity : ComponentActivity() {
                             modifier = Modifier
                                 .fillMaxHeight()
                                 .verticalScroll(rememberScrollState()) // Allow scrolling if needed
-                                .padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                                .padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Spacer(modifier = Modifier.height(128.dp)) // Add empty space at the top
                             Text(
@@ -191,7 +201,7 @@ class PaymentSuccessActivity : ComponentActivity() {
                                     Row(
                                         Modifier
                                             .fillMaxWidth()
-                                            .padding(24.dp)
+                                            .padding(start = 24.dp, top = 24.dp, bottom = 0.dp)
                                     ) {
                                         Text(
                                             text = "TXN ID:", // Transaction ID label
@@ -202,22 +212,45 @@ class PaymentSuccessActivity : ComponentActivity() {
                                         Spacer(modifier = Modifier.width(8.dp)) // Add space
                                         Text(
                                             text = txnId, // Display transaction ID
-                                            fontSize = 16.sp,
-                                            color = Color.DarkGray
+                                            fontSize = 16.sp, color = Color.DarkGray
                                         )
                                         Spacer(modifier = Modifier.width(16.dp)) // Add space
 
                                         // Add an icon to copy the UPI string to the clipboard
-                                        Image(
-                                            painter = painterResource(id = R.drawable.ic_copy),
+                                        Image(painter = painterResource(id = R.drawable.ic_copy),
                                             contentDescription = "Copy UPI",
                                             modifier = Modifier
                                                 .size(16.dp)
                                                 .clickable {
-                                                    copyToClipboard(
-                                                        this@PaymentSuccessActivity,
-                                                        "upiString" // Replace with actual UPI string
-                                                    )
+                                                    copyToClipboard(this@PaymentSuccessActivity, "TXN ID", txnId)
+                                                }
+                                        )
+                                    }
+                                    Row(
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(start = 24.dp, bottom = 24.dp, top = 12.dp)
+                                    ) {
+                                        Text(
+                                            text = "RRN:", // Transaction ID label
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.DarkGray
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp)) // Add space
+                                        Text(
+                                            text = rrn, // Display transaction ID
+                                            fontSize = 16.sp, color = Color.DarkGray
+                                        )
+                                        Spacer(modifier = Modifier.width(16.dp)) // Add space
+
+                                        // Add an icon to copy the UPI string to the clipboard
+                                        Image(painter = painterResource(id = R.drawable.ic_copy),
+                                            contentDescription = "Copy UPI",
+                                            modifier = Modifier
+                                                .size(16.dp)
+                                                .clickable {
+                                                    copyToClipboard(this@PaymentSuccessActivity, "RRN", rrn)
                                                 }
                                         )
                                     }
@@ -240,21 +273,19 @@ class PaymentSuccessActivity : ComponentActivity() {
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = Color(0xFF3F51B5), // Background color for AppBar
                 titleContentColor = Color.White // Title text color
-            ),
-            title = {},
-            scrollBehavior = scrollBehavior
+            ), title = {}, scrollBehavior = scrollBehavior
         )
     }
 }
 
-// Function to copy a UPI string to the clipboard
-fun copyToClipboard(context: Context, upiString: String) {
-    // Get the clipboard manager
-    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    // Create a new clip with the UPI string
-    val clip = ClipData.newPlainText("UPI String", upiString)
-    // Set the clip in the clipboard
-    clipboard.setPrimaryClip(clip)
-    // Show a toast message to notify the user
-    Toast.makeText(context, "UPI copied to clipboard", Toast.LENGTH_SHORT).show()
-}
+//// Function to copy a UPI string to the clipboard
+//fun com.softmintindia.pgsdk.Utils.copyToClipboard(context: Context, label:String, value: String) {
+//    // Get the clipboard manager
+//    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+//    // Create a new clip with the UPI string
+//    val clip = ClipData.newPlainText(label, value)
+//    // Set the clip in the clipboard
+//    clipboard.setPrimaryClip(clip)
+//    // Show a toast message to notify the user
+//    Toast.makeText(context, "$label copied to clipboard", Toast.LENGTH_SHORT).show()
+//}

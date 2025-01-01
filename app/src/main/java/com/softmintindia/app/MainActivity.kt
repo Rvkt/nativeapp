@@ -20,9 +20,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,12 +43,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -83,55 +78,17 @@ class MainActivity : ComponentActivity() {
                     ) {
                         // Use a Column to stack the button on top
                         Column(modifier = Modifier.fillMaxSize()) {
-//                            Button(
-//                                onClick = {
-//                                    PGSDKManager.initialize(
-//                                        context = this@MainActivity,
-//                                        apiKey = "123456",
-//                                        amount = "100.00",
-//                                        remark = "SDK Initialization"
-//                                    ) { success, message ->
-//                                        if (success) {
-//                                            // Initialization successful, PaymentActivity will start automatically
-//                                            Log.d("MainActivity", message)
-//                                            Toast.makeText(
-//                                                this@MainActivity,
-//                                                "Initialization successful",
-//                                                Toast.LENGTH_SHORT
-//                                            ).show()
-//                                        } else {
-//                                            // Handle initialization failure
-//                                            Log.e("MainActivity", message)
-//                                            // Show a toast saying "Initialization failed"
-//                                            Toast.makeText(
-//                                                this@MainActivity,
-//                                                "Initialization failed, $message",
-//                                                Toast.LENGTH_SHORT
-//                                            ).show()
-//                                        }
-//                                    }
-//                                },
-//                                modifier = Modifier
-//                                    .align(Alignment.CenterHorizontally)
-//                                    .padding(16.dp)
-//                            ) {
-//                                Text("Go to Payment")
-//                            }
-
                             Button(
                                 onClick = {
-
-//                                    this@MainActivity.initiateUpiTxn("100.00", "Initiate UPI Transaction", identifier = "TEST SDK", orderId = "TXN20241230174410");
                                     PGSDKManager.initialize(
                                         context = this@MainActivity,
-                                        amount = "10",
+                                        amount = "1",
                                         remark = "SDK Initialization",
                                         identifier = "GANPATI001",
                                         orderId = "TXN20241230174410"
                                     ) { success, message ->
                                         if (success) {
 //                                            this@MainActivity.finish()
-                                            // Initialization successful, PaymentActivity will start automatically
                                             Log.d("MainActivity", message)
                                             Toast.makeText(
                                                 this@MainActivity,
@@ -152,11 +109,11 @@ class MainActivity : ComponentActivity() {
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp)
+                                    .padding(horizontal = 8.dp),
+                                shape = RoundedCornerShape(4.dp)
                             ) {
                                 Text(
-                                    text = "Navigate to Payment",
-                                    modifier = Modifier.padding(16.dp)
+                                    text = "Navigate to Payment", modifier = Modifier.padding(16.dp)
                                 )
                             }
 
@@ -182,10 +139,10 @@ class MainActivity : ComponentActivity() {
 //                            )
 
 
-                            PaymentScreen()
+//                            PaymentScreen()
 
 
-//                            InstalledAppsList()
+                            InstalledAppsList()
 
                         }
                     }
@@ -368,6 +325,7 @@ class MainActivity : ComponentActivity() {
 
 }
 
+
 @SuppressLint("DefaultLocale")
 @Composable
 fun DismissibleAlertDialog(
@@ -376,7 +334,7 @@ fun DismissibleAlertDialog(
     payingTo: String,
     amount: String,
 ) {
-    var timeLeft by remember { mutableIntStateOf(60) } // 1 minute in seconds
+    var timeLeft by remember { mutableIntStateOf(10) }
 
     LaunchedEffect(Unit) {
         while (timeLeft > 0) {
@@ -401,8 +359,7 @@ fun DismissibleAlertDialog(
                 Image(
                     painter = painterResource(id = R.drawable.ic_softmint),
                     contentDescription = null,
-                    modifier = Modifier
-                        .padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
 
                 HorizontalDivider(
@@ -417,13 +374,17 @@ fun DismissibleAlertDialog(
 
                 Text(
                     text = "Payment Confirmation",
-                    style = MaterialTheme.typography.headlineSmall.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontSize = 16.sp, fontWeight = FontWeight.Bold
+                    ),
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "This will only take a moment.",
-                    style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp, fontStyle = FontStyle.Italic),
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontSize = 16.sp, fontStyle = FontStyle.Italic
+                    ),
 //                    fontWeight = FontWeight.Bold
                 )
 
@@ -514,8 +475,7 @@ fun DismissibleAlertDialog(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Minutes",
-                            style = MaterialTheme.typography.labelSmall
+                            text = "Minutes", style = MaterialTheme.typography.labelSmall
                         )
                     }
 
@@ -537,8 +497,7 @@ fun DismissibleAlertDialog(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Seconds",
-                            style = MaterialTheme.typography.labelSmall
+                            text = "Seconds", style = MaterialTheme.typography.labelSmall
                         )
                     }
                 }
@@ -573,7 +532,7 @@ fun DismissibleAlertDialog(
 @Composable
 fun LoginButtons(
     onLoginClick: () -> Unit,
-    onSubmitOtpClick: () -> Unit
+    onSubmitOtpClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier.padding(16.dp),
@@ -581,8 +540,7 @@ fun LoginButtons(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Button(
-            onClick = onLoginClick,
-            modifier = Modifier.weight(1f)
+            onClick = onLoginClick, modifier = Modifier.weight(1f)
         ) {
             Text(
                 text = "Login User",
@@ -593,8 +551,7 @@ fun LoginButtons(
         Spacer(modifier = Modifier.width(16.dp))
 
         Button(
-            onClick = onSubmitOtpClick,
-            modifier = Modifier.weight(1f)
+            onClick = onSubmitOtpClick, modifier = Modifier.weight(1f)
         ) {
             Text(
                 text = "Submit OTP",
@@ -615,24 +572,23 @@ fun PaymentScreen() {
         verticalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxSize()
     ) {
-        PaymentButtons(
-            onPaymentSuccess = {
-                dialogType = "SUCCESS"
-                showDialog = true
-            },
-            onPaymentFailure = {
-                dialogType = "FAILURE"
-                showDialog = true
-            }
-        )
+        PaymentButtons(onPaymentSuccess = {
+            dialogType = "SUCCESS"
+            showDialog = true
+        }, onPaymentFailure = {
+            dialogType = "FAILURE"
+            showDialog = true
+        })
 
         // Show DismissibleAlertDialog based on dialogType
         if (showDialog) {
             DismissibleAlertDialog(
                 onDismiss = {
                     // Handle dismissal based on dialog type
-                    val message = if (dialogType == "SUCCESS") "Payment Successful" else "Payment Failed"
-                    val activityClass = if (dialogType == "SUCCESS") PaymentSuccessActivity::class.java else PaymentFailedActivity::class.java
+                    val message =
+                        if (dialogType == "SUCCESS") "Payment Successful" else "Payment Failed"
+                    val activityClass =
+                        if (dialogType == "SUCCESS") PaymentSuccessActivity::class.java else PaymentFailedActivity::class.java
 
                     // Prepare details
                     val payeeName = "John Doe"
@@ -657,10 +613,7 @@ fun PaymentScreen() {
 
                     // Close the dialog
                     showDialog = false
-                },
-                companyName = "Softmint Technologies",
-                payingTo = "John Doe",
-                amount = "500"
+                }, companyName = "Softmint Technologies", payingTo = "John Doe", amount = "500"
             )
         }
     }
@@ -669,11 +622,10 @@ fun PaymentScreen() {
 @Composable
 fun PaymentButtons(
     onPaymentSuccess: () -> Unit,
-    onPaymentFailure: () -> Unit
+    onPaymentFailure: () -> Unit,
 ) {
     Row(
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        modifier = Modifier.fillMaxWidth()
+        horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()
     ) {
         Button(onClick = onPaymentSuccess) {
             Text("Simulate Success")
@@ -683,7 +635,6 @@ fun PaymentButtons(
         }
     }
 }
-
 
 
 @Preview(showBackground = true)

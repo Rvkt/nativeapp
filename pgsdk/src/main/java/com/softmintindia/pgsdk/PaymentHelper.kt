@@ -80,71 +80,44 @@ class PaymentHelper {
     fun checkTxnStatus(
         context: Context,
         orderId: String,
-        checkStatusCallback: (Boolean, String) -> Unit,
+        checkStatusCallback: (String, CheckTxnStatusResponse?) -> Unit, // Updated callback signature
     ) {
         try {
-
             val requestBody = ApiRequests.CheckTxnRequest(orderId)
             val header = ApiHeaders.withToken(context = context)
-            // todo: show the dialog
+
+            val logTag: String = "$TAG: checkTxnStatus"
 
             val callback = ApiImplementation<CheckTxnStatusResponse> { success, responseData, message ->
+                // Handle API response
 
-                // todo: dismiss the dialog
                 if (success) {
-
                     val data = responseData?.data
-                    Log.d("Payment Helper", "Success: $data")
+                    Log.d(logTag, "Success: $data")
 
                     if (data != null) {
-                        if (data.status == "SUCCESS"){
-                            // Invoke the callback with true for success and the remark from the response
-                            checkStatusCallback(true, data.remark)
-
-
-                            // Close the current activity and replace it with PaymentSuccessActivity
-                            val intent = Intent(context, PaymentSuccessActivity::class.java).apply {
-                                flags = Intent.FLAG_ACTIVITY_CLEAR_TASK // This clears the back stack
-                                if (data != null) {
-
-                                    putExtra("TXN_ID", data.orderId)
-                                    putExtra("SUCCESS_MESSAGE", message)
-                                    putExtra("PAYEE_NAME", data.name)
-                                    putExtra("AMOUNT", data.amount)
-                                    putExtra("DATE", data.date)
-                                    putExtra("TIME", data.time)
-                                }
+                        when (data.status) {
+                            "SUCCESS" -> {
+                                // Invoke the callback with true, message, and responseData
+                                checkStatusCallback(data.remark, responseData)
                             }
-                            context.startActivity(intent)
+                            "FAILED" -> {
+                                // Invoke the callback with false, message, and responseData
+                                checkStatusCallback(data.remark, responseData)
+                            }
                         }
                     }
-
-
-
                 } else {
-                    Log.e("Payment Helper", "Failure: $message")
+                    Log.e(logTag, "Failure: $message")
 
-
-                    // Close the current activity and replace it with PaymentFailedActivity
-                    val intent = Intent(context, PaymentFailedActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_CLEAR_TASK // This clears the back stack
-                        if (responseData != null) {
-                            if (message != null) {
-                                checkStatusCallback(false, message)
-                            }
-                            val data = responseData.data
-                            putExtra("FAILURE_MESSAGE", message)
-                            putExtra("TXN_ID", data.orderId)
-                            putExtra("PAYEE_NAME", data.name)
-                            putExtra("AMOUNT", data.amount)
-                            putExtra("DATE", data.date)
-                            putExtra("TIME", data.time)
-                        }
+                    // Invoke the callback with false, message, and responseData
+                    if (responseData != null) {
+                        checkStatusCallback(responseData.message, responseData)
                     }
-                    context.startActivity(intent)
                 }
             }
 
+            // Call the API
             ApiClient.apiService.checkTxnStatus(header, requestBody = requestBody)
                 .enqueue(object : Callback<CheckTxnStatusResponse> {
                     override fun onResponse(
@@ -159,9 +132,7 @@ class PaymentHelper {
                             }
                         } else {
                             callback.onError(
-                                "Response unsuccessful: ${
-                                    response.toString()
-                                }"
+                                "Response unsuccessful: ${response.toString()}"
                             )
                         }
                     }
@@ -174,6 +145,7 @@ class PaymentHelper {
             Toast.makeText(context, "API call failed: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
+
 
 
     // Function to launch the app in the Play Store
