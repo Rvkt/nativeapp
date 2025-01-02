@@ -9,7 +9,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import com.softmintindia.app.data.ApiImplementation
-import com.softmintindia.pgsdk.PGSDKManager.TAG
 import com.softmintindia.pgsdk.data.api.ApiClient
 import com.softmintindia.pgsdk.data.api.ApiHeaders
 import com.softmintindia.pgsdk.data.api.ApiRequests
@@ -20,6 +19,7 @@ import retrofit2.Response
 
 class PaymentHelper {
 
+    val TAG = "Payment Helper"
     private var txnId: String? = null
 
     // Function to initiate UPI payment with ActivityResultLauncher

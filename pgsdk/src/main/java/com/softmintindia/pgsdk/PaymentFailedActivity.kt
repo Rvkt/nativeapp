@@ -68,18 +68,10 @@ class PaymentFailedActivity : ComponentActivity() {
         val time = intent.getStringExtra("TIME") ?: "N/A"
         val txnId = intent.getStringExtra("TXN_ID") ?: "N/A"
         val rrn = intent.getStringExtra("RRN") ?: "N/A"
+        val name = intent.getStringExtra("NAME") ?: "N/A"
+        val status = intent.getStringExtra("STATUS") ?: "N/A"
 
 
-        val resultIntent = intent.apply {
-            putExtra("REMARK", remark)
-            putExtra("PAYEE_NAME", payeeName)
-            putExtra("AMOUNT", amount)
-            putExtra("DATE", date)
-            putExtra("TIME", time)
-            putExtra("TXN_ID", txnId)
-            putExtra("RRN", rrn)
-        }
-        setResult(1001, resultIntent)
 
         // Set system UI visibility to non-transparent
         window.statusBarColor = Color(0xFF3F51B5).toArgb()
@@ -89,8 +81,21 @@ class PaymentFailedActivity : ComponentActivity() {
 
         // Start the timer to finish the activity after 10 seconds
         Handler(Looper.getMainLooper()).postDelayed({
-            finish() // Finish the activity after 10 seconds
+            val resultIntent = intent.apply {
+                putExtra("REMARK", remark)
+                putExtra("PAYEE_NAME", payeeName)
+                putExtra("AMOUNT", amount)
+                putExtra("DATE", date)
+                putExtra("TIME", time)
+                putExtra("TXN_ID", txnId)
+                putExtra("RRN", rrn)
+                putExtra("NAME", name)
+                putExtra("STATUS", status)
+            }
+            setResult(RESULT_OK, resultIntent)
+            finish()
         }, 10000)
+
 
         setContent {
             AppTheme {

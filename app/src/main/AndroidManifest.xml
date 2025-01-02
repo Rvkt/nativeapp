@@ -46,6 +46,9 @@
         <activity
             android:name="com.softmintindia.pgsdk.PaymentFailedActivity"
             android:exported="false" />
+        <activity
+            android:name="com.softmintindia.pgsdk.SdkActivity"
+            android:exported="false" />
 
 
     </application>

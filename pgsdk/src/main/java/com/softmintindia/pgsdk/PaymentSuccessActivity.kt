@@ -81,13 +81,15 @@ class PaymentSuccessActivity : ComponentActivity() {
         val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
 
 
-        val successMessage = intent.getStringExtra("REMARK") ?: "Payment completed successfully!"
+        val remark = intent.getStringExtra("REMARK") ?: "Payment completed successfully!"
         val payeeName = intent.getStringExtra("PAYEE_NAME") ?: "Unknown Payee"
         val amount = intent.getStringExtra("AMOUNT") ?: "N/A"
-        val date = intent.getStringExtra("DATE") ?: "2025-01-01"
-        val time = intent.getStringExtra("TIME") ?: "06:10:23 PM"
+        val date = intent.getStringExtra("DATE") ?: "N/A"
+        val time = intent.getStringExtra("TIME") ?: "N/A"
         val txnId = intent.getStringExtra("TXN_ID") ?: "N/A"
         val rrn = intent.getStringExtra("RRN") ?: "N/A"
+        val name = intent.getStringExtra("NAME") ?: "N/A"
+        val status = intent.getStringExtra("STATUS") ?: "N/A"
 
 
         // Set the status bar and navigation bar colors to a specific shade of blue
@@ -99,8 +101,19 @@ class PaymentSuccessActivity : ComponentActivity() {
 
         // Automatically finish the activity after 10 seconds
         Handler(Looper.getMainLooper()).postDelayed({
-            // Uncomment the following line to finish the activity
-//            finish()
+            val resultIntent = intent.apply {
+                putExtra("REMARK", remark)
+                putExtra("PAYEE_NAME", payeeName)
+                putExtra("AMOUNT", amount)
+                putExtra("DATE", date)
+                putExtra("TIME", time)
+                putExtra("TXN_ID", txnId)
+                putExtra("RRN", rrn)
+                putExtra("NAME", name)
+                putExtra("STATUS", status)
+            }
+            setResult(RESULT_OK, resultIntent)
+            finish()
         }, 10000)
 
         // Set the UI content of the activity using Jetpack Compose

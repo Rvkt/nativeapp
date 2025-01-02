@@ -2,6 +2,7 @@ package com.softmintindia.pgsdk
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -155,7 +156,7 @@ class PaymentActivity : ComponentActivity() {
                         qrService = qrService,
                         raiseRequest = raiseRequest,
                         intentRequest = intentRequest,
-                        activity = this,
+                        activity = this@PaymentActivity,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -243,7 +244,7 @@ fun MainContent(
     qrService: Boolean,
     raiseRequest: Boolean,
     intentRequest: Boolean,
-    activity: ComponentActivity,
+    activity: Activity,
 ) {
     Column(
         modifier = modifier
@@ -289,24 +290,24 @@ fun MainContent(
         }
 
 //        Spacer(modifier = Modifier.height(24.dp))
-        Button(
-            onClick = { Log.d("ButtonClick", "Continue clicked") },
-            shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(contentColor = Color(0xFF3F51B5)),
-            modifier = Modifier
-//                .height(64.dp)
-                .padding(16.dp)
-                .wrapContentHeight()
-                .fillMaxWidth()
-        ) {
-            Text(
-                modifier = Modifier.padding(8.dp),
-                text = "Continue",
-                fontSize = 20.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-        }
+//        Button(
+//            onClick = { Log.d("ButtonClick", "Continue clicked") },
+//            shape = RoundedCornerShape(8.dp),
+//            colors = ButtonDefaults.buttonColors(contentColor = Color(0xFF3F51B5)),
+//            modifier = Modifier
+////                .height(64.dp)
+//                .padding(16.dp)
+//                .wrapContentHeight()
+//                .fillMaxWidth()
+//        ) {
+//            Text(
+//                modifier = Modifier.padding(8.dp),
+//                text = "Continue",
+//                fontSize = 20.sp,
+//                color = Color.White,
+//                fontWeight = FontWeight.Bold
+//            )
+//        }
 
         // Powered by UPI
 //        Spacer(modifier = Modifier.height(32.dp))
@@ -550,7 +551,7 @@ fun QRExpansionTile(
     iconResourceId: Int,
     upiId: String,
     showExpanded: MutableState<Boolean>,
-    activity: ComponentActivity,
+    activity: Activity,
 ) {
     // Generate the QR code bitmap
     val qrCodeBitmap = generateQRCode(upiId)
@@ -653,7 +654,6 @@ fun QRExpansionTile(
                     txnId,
                     token,
                     onStatusSuccess = { data ->
-                        activity.finish()
                         // Navigate to PaymentSuccessActivity
                         val intent = Intent(activity, PaymentSuccessActivity::class.java).apply {
                             putExtra("REMARK", data.remark)
@@ -663,14 +663,16 @@ fun QRExpansionTile(
                             putExtra("TIME", data.time)
                             putExtra("TXN_ID", data.orderId)
                             putExtra("RRN", data.rrn)
+                            putExtra("NAME", data.name)
+                            putExtra("STATUS", data.status)
+
                         }
 
-//                        activity.setResult(Activity.RESULT_OK, intent)
-
-                        activity.startActivity(intent)
+                        activity.setResult(RESULT_OK, intent)
+                        activity.finish()
+//                        activity.startActivity(intent)
                     },
                     onStatusFailed = { data ->
-                        activity.finish()
 
                         // Navigate to PaymentFailedActivity
                         val intent = Intent(activity, PaymentFailedActivity::class.java).apply {
@@ -681,11 +683,14 @@ fun QRExpansionTile(
                             putExtra("TIME", data.time)
                             putExtra("TXN_ID", data.orderId)
                             putExtra("RRN", data.rrn)
+                            putExtra("NAME", data.name)
+                            putExtra("STATUS", data.status)
                         }
 
-                        activity.setResult(Activity.RESULT_OK, intent)
+                        activity.setResult(RESULT_OK, intent)
+                        activity.finish()
 
-                        activity.startActivity(intent)
+//                        activity.startActivity(intent)
                     },
                     onTimerFinish = {
                         Log.d("TXN Status Check", "Timer Finished - Perform final action.")

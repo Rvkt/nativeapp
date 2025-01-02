@@ -13,7 +13,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,79 +21,71 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.softmintindia.app.presentation.InstalledAppsList
 import com.softmintindia.app.presentation.showToast
 import com.softmintindia.app.ui.theme.AppTheme
-import com.softmintindia.pgsdk.PGSDKManager
+import com.softmintindia.pgsdk.PaymentActivity
 import com.softmintindia.pgsdk.PaymentFailedActivity
 import com.softmintindia.pgsdk.PaymentSuccessActivity
-import com.softmintindia.pgsdk.R
+import com.softmintindia.pgsdk.SdkActivity
+import com.softmintindia.pgsdk.data.api.NetworkCall
 import com.softmintindia.pgsdk.utils.DismissibleAlertDialog
-import kotlinx.coroutines.delay
 
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 
-    private val startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-        if (result.resultCode == RESULT_OK) {
-            val data = result.data
-            // Retrieve the data from PaymentFailedActivity
-            val remark = data?.getStringExtra("REMARK")
-            val payeeName = data?.getStringExtra("PAYEE_NAME")
-            val amount = data?.getStringExtra("AMOUNT")
-            val date = data?.getStringExtra("DATE")
-            val time = data?.getStringExtra("TIME")
-            val txnId = data?.getStringExtra("TXN_ID")
-            val rrn = data?.getStringExtra("RRN")
+    private val startForResult =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+            if (result.resultCode == RESULT_OK) {
+                val data = result.data
+                // Retrieve the data from PaymentFailedActivity
+                val remark = data?.getStringExtra("REMARK")
+                val payeeName = data?.getStringExtra("PAYEE_NAME")
+                val amount = data?.getStringExtra("AMOUNT")
+                val date = data?.getStringExtra("DATE")
+                val time = data?.getStringExtra("TIME")
+                val txnId = data?.getStringExtra("TXN_ID")
+                val rrn = data?.getStringExtra("RRN")
+                val status = data?.getStringExtra("STATUS")
+                val name = data?.getStringExtra("NAME")
 
-            // Log the received data
-            Log.d("PaymentFailedData", "REMARK: $remark")
-            Log.d("PaymentFailedData", "PAYEE_NAME: $payeeName")
-            Log.d("PaymentFailedData", "AMOUNT: $amount")
-            Log.d("PaymentFailedData", "DATE: $date")
-            Log.d("PaymentFailedData", "TIME: $time")
-            Log.d("PaymentFailedData", "TXN_ID: $txnId")
-            Log.d("PaymentFailedData", "RRN: $rrn")
+                // Log the received data
+                Log.d("SDK Callback", "REMARK: $remark")
+                Log.d("SDK Callback", "PAYEE_NAME: $payeeName")
+                Log.d("SDK Callback", "AMOUNT: $amount")
+                Log.d("SDK Callback", "DATE: $date")
+                Log.d("SDK Callback", "TIME: $time")
+                Log.d("SDK Callback", "TXN_ID: $txnId")
+                Log.d("SDK Callback", "RRN: $rrn")
+                Log.d("SDK Callback", "STATUS: $status")
+                Log.d("SDK Callback", "NAME: $name")
 
-            // Use the data as needed, for example, showing a toast
-            Toast.makeText(this, "Payment Failed! Txn ID: $txnId", Toast.LENGTH_LONG).show()
+                // Use the data as needed, for example, showing a toast
+                Toast.makeText(this, "Payment Failed! Txn ID: $txnId", Toast.LENGTH_LONG).show()
+            }
         }
-    }
 
 
-
-
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -107,25 +98,87 @@ class MainActivity : ComponentActivity() {
                             .padding(innerPadding)
                     ) {
                         // Use a Column to stack the button on top
-                        Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.background)
+                        ) {
+
                             Button(
                                 onClick = {
-                                    PGSDKManager.initialize(
+                                    val intent = Intent(
+                                        this@MainActivity,
+                                        SdkActivity::class.java
+                                    ).apply {
+                                        putExtra("token", "YourTokenHere")
+                                        putExtra("amount", "10")
+                                        putExtra("remark", "SDK Initialization")
+                                        putExtra("identifier", "GANPATI001")
+                                        putExtra("orderId", generateOrderId())
+                                    }
+                                    startForResult.launch(intent)
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
+                            ) {
+                                Text(
+                                    text = "Navigate to SDK Activity",
+                                    modifier = Modifier.padding(8.dp),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
+
+                            Button(
+                                onClick = {
+                                    NetworkCall.initiatePaymentApiCall(
                                         context = this@MainActivity,
                                         token = "U8lhxHPSNei90rUSaVebMC11fRyF1MLWrmTip+1yjInOO16/hbJVKf5f/QbRiIp69oHZ1lxqMLkq0aiwuAwtvfKWzCid83Y5zKPR4TaS3FTFgCEC+fe5vC5dTuLx6FzmYvupZRRJs1xVmTmjv8zW3alueclL8DCoesY+QOco4Eb7EmstLPdVsjmW8LDZNxDXh5ZK/ZRKSG4AKxt5wits6f9CpuEGU/VeO1mNCSTARxoF8ioaac/3jFyYWkrHz9HJ0q0D/T7tGHZhb/MnUogxS+vEN3QJtg6CaV0/Y8lEK0srfBz/EOzJDtPMi8IRoW+2VEjwsHoS3PMtjzlincbvRg==",
                                         amount = "10",
                                         remark = "SDK Initialization",
                                         identifier = "GANPATI001",
                                         orderId = generateOrderId()
-                                    ) { success, message ->
+                                    ) { success, message, responseData ->
                                         if (success) {
                                             // this@MainActivity.finish()
-                                            Log.d("MainActivity", message)
+                                            Log.d("MainActivity", responseData.toString())
                                             Toast.makeText(
                                                 this@MainActivity,
                                                 "Initialization successful",
                                                 Toast.LENGTH_SHORT
                                             ).show()
+                                            val intent = Intent(
+                                                this@MainActivity, PaymentActivity::class.java
+                                            ).apply {
+                                                if (responseData != null) {
+                                                    putExtra("amount", responseData.amount)
+                                                    putExtra("remark", responseData.remark)
+                                                    putExtra("identifier", responseData.identifire)
+                                                    putExtra("orderId", responseData.orderId)
+                                                    putExtra("COMPANY", responseData.companyName)
+                                                    putExtra("AMOUNT", responseData.amount)
+                                                    putExtra(
+                                                        "TOKEN",
+                                                        "U8lhxHPSNei90rUSaVebMC11fRyF1MLWrmTip+1yjInOO16/hbJVKf5f/QbRiIp69oHZ1lxqMLkq0aiwuAwtvfKWzCid83Y5zKPR4TaS3FTFgCEC+fe5vC5dTuLx6FzmYvupZRRJs1xVmTmjv8zW3alueclL8DCoesY+QOco4Eb7EmstLPdVsjmW8LDZNxDXh5ZK/ZRKSG4AKxt5wits6f9CpuEGU/VeO1mNCSTARxoF8ioaac/3jFyYWkrHz9HJ0q0D/T7tGHZhb/MnUogxS+vEN3QJtg6CaV0/Y8lEK0srfBz/EOzJDtPMi8IRoW+2VEjwsHoS3PMtjzlincbvRg=="
+                                                    )
+                                                    putExtra("UPI_URL", responseData.qrString)
+                                                    putExtra("ORDER_ID", responseData.orderId)
+                                                    putExtra("QR_SERVICE", responseData.qrRequest)
+                                                    putExtra(
+                                                        "RAISE_REQUEST",
+                                                        responseData.raiseRequest
+                                                    )
+                                                    putExtra(
+                                                        "INTENT_REQUEST",
+                                                        responseData.intentRequest
+                                                    )
+                                                }
+                                            }
+                                            startForResult.launch(intent)
+
                                         } else {
                                             // Handle initialization failure
                                             Log.e("MainActivity", message)
@@ -140,14 +193,59 @@ class MainActivity : ComponentActivity() {
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(MaterialTheme.colorScheme.background)
-                                    .padding(horizontal = 8.dp),
-                                shape = RoundedCornerShape(4.dp)
+                                    .padding(8.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
                             ) {
                                 Text(
-                                    text = "Navigate to Payment", modifier = Modifier.padding(16.dp)
+                                    text = "Navigate to Payment Activity",
+                                    modifier = Modifier.padding(8.dp),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onPrimary
                                 )
                             }
+
+
+//                            Button(
+//                                onClick = {
+//                                    PGSDKManager.initialize(
+//                                        context = this@MainActivity,
+//                                        token = "U8lhxHPSNei90rUSaVebMC11fRyF1MLWrmTip+1yjInOO16/hbJVKf5f/QbRiIp69oHZ1lxqMLkq0aiwuAwtvfKWzCid83Y5zKPR4TaS3FTFgCEC+fe5vC5dTuLx6FzmYvupZRRJs1xVmTmjv8zW3alueclL8DCoesY+QOco4Eb7EmstLPdVsjmW8LDZNxDXh5ZK/ZRKSG4AKxt5wits6f9CpuEGU/VeO1mNCSTARxoF8ioaac/3jFyYWkrHz9HJ0q0D/T7tGHZhb/MnUogxS+vEN3QJtg6CaV0/Y8lEK0srfBz/EOzJDtPMi8IRoW+2VEjwsHoS3PMtjzlincbvRg==",
+//                                        amount = "10",
+//                                        remark = "SDK Initialization",
+//                                        identifier = "GANPATI001",
+//                                        orderId = generateOrderId()
+//                                    ) { success, message ->
+//                                        if (success) {
+//                                            // this@MainActivity.finish()
+//                                            Log.d("MainActivity", message)
+//                                            Toast.makeText(
+//                                                this@MainActivity,
+//                                                "Initialization successful",
+//                                                Toast.LENGTH_SHORT
+//                                            ).show()
+//                                        } else {
+//                                            // Handle initialization failure
+//                                            Log.e("MainActivity", message)
+//                                            // Show a toast saying "Initialization failed"
+//                                            Toast.makeText(
+//                                                this@MainActivity,
+//                                                "Initialization failed, $message",
+//                                                Toast.LENGTH_SHORT
+//                                            ).show()
+//                                        }
+//                                    }
+//                                },
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                                    .background(MaterialTheme.colorScheme.background)
+//                                    .padding(horizontal = 8.dp),
+//                                shape = RoundedCornerShape(4.dp)
+//                            ) {
+//                                Text(
+//                                    text = "Navigate to Payment", modifier = Modifier.padding(16.dp)
+//                                )
+//                            }
 
 //                            LoginButtons(
 //                                onLoginClick = {
@@ -171,7 +269,7 @@ class MainActivity : ComponentActivity() {
 //                            )
 
 
-                            PaymentScreen()
+//                            PaymentScreen()
 //                            InstalledAppsList()
 
                         }
