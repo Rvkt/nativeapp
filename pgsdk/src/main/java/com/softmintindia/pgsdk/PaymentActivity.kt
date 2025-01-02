@@ -84,6 +84,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -119,6 +120,7 @@ class PaymentActivity : ComponentActivity() {
 
 
         val txnId = intent.getStringExtra("ORDER_ID") ?: ""
+        val token = intent.getStringExtra("TOKEN") ?: ""
 
         // Retrieve the service flags
         val qrService = intent.getBooleanExtra("QR_SERVICE", false)
@@ -147,6 +149,7 @@ class PaymentActivity : ComponentActivity() {
                     MainContent(
                         companyName = companyName,
                         amount = amount,
+                        token = token,
                         upiUrl = upiUrl,
                         txnId = txnId,
                         qrService = qrService,
@@ -235,6 +238,7 @@ fun MainContent(
     companyName: String,
     txnId: String,
     amount: String,
+    token: String,
     upiUrl: String,
     qrService: Boolean,
     raiseRequest: Boolean,
@@ -245,7 +249,7 @@ fun MainContent(
         modifier = modifier
             .fillMaxSize()
             .fillMaxHeight()
-            .background(Color(0xFFF6F7FF))
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .padding(bottom = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -259,9 +263,12 @@ fun MainContent(
                 showExpanded = remember { mutableStateOf(!raiseRequest && !intentRequest) },
                 upiId = upiUrl,
                 txnId = txnId,
+                token = token,
                 activity = activity
             )
         }
+
+
 
         if (raiseRequest) {
             InputFieldWithSubmit(
@@ -323,6 +330,7 @@ fun MainContent(
                 Text(
                     text = "POWERED BY",
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                    color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center
                 )
                 Image(
@@ -344,6 +352,7 @@ fun MainContent(
                 Text(
                     text = "TRANSACTION PARTNER",
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                    color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center,
                 )
                 Image(
@@ -537,6 +546,7 @@ private fun generateQRCode(content: String): Bitmap? {
 fun QRExpansionTile(
     title: String,
     txnId: String,
+    token: String,
     iconResourceId: Int,
     upiId: String,
     showExpanded: MutableState<Boolean>,
@@ -550,12 +560,13 @@ fun QRExpansionTile(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
+
     ) {
         Text(
             text = "Preferred Payment Methods",
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = if (isSystemInDarkTheme()) Color.White else Color.Gray,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier
                 .align(Alignment.Start)
                 .padding(top = 24.dp, bottom = 8.dp)
@@ -640,6 +651,7 @@ fun QRExpansionTile(
                     context = activity.applicationContext,
                     initialTime = 5 * 60 * 1000L,
                     txnId,
+                    token,
                     onStatusSuccess = { data ->
                         activity.finish()
 
@@ -689,6 +701,7 @@ fun TimerWithStatusCheck(
     context: Context,
     initialTime: Long,
     txnId: String,
+    token: String,
     onStatusSuccess: (CheckTxnResponseData) -> Unit,
     onStatusFailed: (CheckTxnResponseData) -> Unit,
     onTimerFinish: () -> Unit,
@@ -704,7 +717,7 @@ fun TimerWithStatusCheck(
             Log.d("TXN Status Check", "Time left: $timeLeft")
             delay(10000L) // Wait for 10 seconds
 
-            paymentHelper.checkTxnStatus(context, orderId = txnId) { message, checkTxnResponse ->
+            paymentHelper.checkTxnStatus(context, orderId = txnId, token = token) { message, checkTxnResponse ->
                 // Handle success or failure based on the values of isSuccess and message
 
                 val paymentStatus = checkTxnResponse?.data?.status
@@ -1161,6 +1174,7 @@ fun DismissibleAlertDialog(
                 Text(
                     text = "POWERED BY",
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+
                     textAlign = TextAlign.Center
                 )
                 Image(

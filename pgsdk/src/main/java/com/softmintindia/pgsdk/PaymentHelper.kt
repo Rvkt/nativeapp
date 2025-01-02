@@ -80,13 +80,14 @@ class PaymentHelper {
     fun checkTxnStatus(
         context: Context,
         orderId: String,
+        token: String,
         checkStatusCallback: (String, CheckTxnStatusResponse?) -> Unit, // Updated callback signature
     ) {
         try {
             val requestBody = ApiRequests.CheckTxnRequest(orderId)
-            val header = ApiHeaders.withToken(context = context)
+            val header = ApiHeaders.withToken(context = context, token = token)
 
-            val logTag: String = "$TAG: checkTxnStatus"
+            val logTag: String = "$TAG: Check Txn Status"
 
             val callback = ApiImplementation<CheckTxnStatusResponse> { success, responseData, message ->
                 // Handle API response

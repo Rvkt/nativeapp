@@ -26,11 +26,12 @@ import retrofit2.Response
 
 object PGSDKManager {
     @OptIn(DelicateCoroutinesApi::class)
-    val TAG = "PGSDKManager"
+    val TAG = "Payment Helper"
 
 
     fun initialize(
         context: Context,
+        token: String,
         amount: String,
         remark: String,
         orderId: String,
@@ -39,7 +40,7 @@ object PGSDKManager {
     ) {
 
         // Launch coroutine for asynchronous tasks
-        launchInitializationCoroutine(context, amount, remark, orderId, identifier, callback)
+        launchInitializationCoroutine(context, amount, token, remark, orderId, identifier, callback)
 
     }
 
@@ -52,6 +53,7 @@ object PGSDKManager {
     private fun launchInitializationCoroutine(
         context: Context,
         amount: String,
+        token: String,
         remark: String,
         orderId: String,
         identifier: String,
@@ -66,7 +68,7 @@ object PGSDKManager {
                 }
 
                 // Call the payment API and handle the response
-                callPaymentApi(context,  remark, identifier, orderId, amount, callback)
+                callPaymentApi(context,  remark, identifier, token, orderId, amount, callback)
 
             } catch (e: Exception) {
                 Log.e(TAG, "Initialization error: ${e.message}", e)
@@ -80,6 +82,7 @@ object PGSDKManager {
         context: Context,
         remark: String,
         identifier: String,
+        token: String,
         orderId: String,
         amount: String,
         sdkCallBack: (Boolean, String) -> Unit,
@@ -87,7 +90,7 @@ object PGSDKManager {
         try {
 
             val requestBody = ApiRequests.PgsdkInitRequest(amount, remark, identifier, orderId)
-            val header = ApiHeaders.withToken(context = context)
+            val header = ApiHeaders.withToken(context = context, token = token)
             val dialog = showInitializationDialog(context)
 
             val callback = ApiImplementation<PgsdkInitResponse> { success, responseData, message ->
@@ -101,6 +104,7 @@ object PGSDKManager {
                             context,
                             data.companyName,
                             data.amount,
+                            token,
                             data.qrString,
                             data.orderId,
                             data.qrRequest,
@@ -156,6 +160,7 @@ object PGSDKManager {
         context: Context,
         companyName: String,
         amount: String,
+        token: String,
         upiUrl: String,
         orderId: String,
         qrService: Boolean,
@@ -165,6 +170,7 @@ object PGSDKManager {
         val intent = Intent(context, PaymentActivity::class.java).apply {
             putExtra("COMPANY", companyName)
             putExtra("AMOUNT", amount)
+            putExtra("TOKEN", token)
             putExtra("UPI_URL", upiUrl)
             putExtra("ORDER_ID", orderId)
             putExtra("QR_SERVICE", qrService)

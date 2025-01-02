@@ -11,6 +11,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,7 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.softmintindia.pgsdk.utils.copyToClipboard
+//import com.softmintindia.pgsdk.utils.copyToClipboard
 import com.softmintindia.pgsdk.ui.theme.AppTheme
 import kotlinx.coroutines.delay
 
@@ -95,7 +96,7 @@ class PaymentFailedActivity : ComponentActivity() {
             AppTheme {
                 // Scaffold with dynamic container color based on system theme
                 Scaffold(
-                    containerColor = Color(0xFF3F51B5),
+                    containerColor = MaterialTheme.colorScheme.background,
 //                    containerColor = MaterialTheme.colorScheme.background, // Adapts to light/dark theme
                     topBar = { AppBar() }
                 ) {
@@ -132,7 +133,7 @@ class PaymentFailedActivity : ComponentActivity() {
                                 fontSize = 12.sp,
                                 fontFamily = FontFamily.SansSerif,
                                 fontWeight = FontWeight.Normal,
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onBackground,
                                 textAlign = TextAlign.Start
                             )
                             Spacer(modifier = Modifier.height(8.dp))
@@ -142,7 +143,7 @@ class PaymentFailedActivity : ComponentActivity() {
                                 textAlign = TextAlign.Center,
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 2,
-                                color = MaterialTheme.colorScheme.background // Color adapts to light/dark mode
+                                color = MaterialTheme.colorScheme.onBackground // Color adapts to light/dark mode
                             )
                             Spacer(modifier = Modifier.height(48.dp))
                             Image(
@@ -155,103 +156,11 @@ class PaymentFailedActivity : ComponentActivity() {
                             Text(
                                 text = remark,
                                 fontSize = 16.sp,
-                                color = Color.White
+                                color = MaterialTheme.colorScheme.onBackground,
                             )
                             Spacer(modifier = Modifier.weight(1f))
 
-                            Card {
-                                Column {
-                                    Row(
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .padding(24.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Column {
-                                            Text(
-                                                text = payeeName, fontSize = 20.sp,
-                                                fontFamily = FontFamily.SansSerif,
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color.DarkGray,
-                                                textAlign = TextAlign.Start
-                                            )
-                                            Spacer(modifier = Modifier.height(4.dp))
-                                            Text(
-                                                text = "$date $time",
-                                                fontSize = 16.sp,
-                                                fontFamily = FontFamily.SansSerif,
-                                                fontWeight = FontWeight.Normal,
-                                                color = Color.Gray,
-                                                textAlign = TextAlign.Start
-                                            )
-                                        }
-                                        Text(
-                                            text = "₹ $amount", fontSize = 20.sp,
-                                            fontFamily = FontFamily.Monospace,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.DarkGray,
-                                            textAlign = TextAlign.End
-                                        )
-                                    }
-                                    HorizontalDivider()
-                                    Row(
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .padding(start = 24.dp, top = 24.dp, bottom = 0.dp)
-                                    ) {
-                                        Text(
-                                            text = "TXN ID:", // Transaction ID label
-                                            fontSize = 16.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.DarkGray
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp)) // Add space
-                                        Text(
-                                            text = txnId, // Display transaction ID
-                                            fontSize = 16.sp, color = Color.DarkGray
-                                        )
-                                        Spacer(modifier = Modifier.width(16.dp)) // Add space
-
-                                        // Add an icon to copy the UPI string to the clipboard
-                                        Image(painter = painterResource(id = R.drawable.ic_copy),
-                                            contentDescription = "Copy UPI",
-                                            modifier = Modifier
-                                                .size(16.dp)
-                                                .clickable {
-                                                    copyToClipboard(this@PaymentFailedActivity, "TXN ID", txnId)
-                                                }
-                                        )
-                                    }
-                                    Row(
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .padding(start = 24.dp, bottom = 24.dp, top = 12.dp)
-                                    ) {
-                                        Text(
-                                            text = "RRN:", // Transaction ID label
-                                            fontSize = 16.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.DarkGray
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp)) // Add space
-                                        Text(
-                                            text = rrn, // Display transaction ID
-                                            fontSize = 16.sp, color = Color.DarkGray
-                                        )
-                                        Spacer(modifier = Modifier.width(16.dp)) // Add space
-
-                                        // Add an icon to copy the UPI string to the clipboard
-                                        Image(painter = painterResource(id = R.drawable.ic_copy),
-                                            contentDescription = "Copy UPI",
-                                            modifier = Modifier
-                                                .size(16.dp)
-                                                .clickable {
-                                                    copyToClipboard(this@PaymentFailedActivity, "RRN", rrn)
-                                                }
-                                        )
-                                    }
-                                }
-                            }
+                            PaymentDetailsCard(payeeName, date, time, amount, txnId, rrn)
 
 
                         }
@@ -261,6 +170,123 @@ class PaymentFailedActivity : ComponentActivity() {
         }
     }
 
+    @Composable
+    fun PaymentDetailsCard(
+        payeeName: String,
+        date: String,
+        time: String,
+        amount: String,
+        txnId: String,
+        rrn: String
+    ) {
+        Card(
+            modifier = Modifier.padding(16.dp) // Add padding around the card
+        ) {
+            Column(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.onBackground) // Set background color
+                    .padding(16.dp) // Padding inside the card
+            ) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text(
+                            text = payeeName,
+                            fontSize = 20.sp,
+                            fontFamily = FontFamily.SansSerif,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.background, // Text color based on theme
+                            textAlign = TextAlign.Start
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "$date $time",
+                            fontSize = 16.sp,
+                            fontFamily = FontFamily.SansSerif,
+                            fontWeight = FontWeight.Normal,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, // Secondary text color
+                            textAlign = TextAlign.Start
+                        )
+                    }
+                    Text(
+                        text = "₹ $amount",
+                        fontSize = 20.sp,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary, // Primary color for emphasis
+                        textAlign = TextAlign.End
+                    )
+                }
+                HorizontalDivider()
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(start = 24.dp, top = 24.dp, bottom = 0.dp)
+                ) {
+                    Text(
+                        text = "TXN ID:", // Transaction ID label
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.background // Standard text color
+                    )
+                    Spacer(modifier = Modifier.width(8.dp)) // Add space
+                    Text(
+                        text = txnId, // Display transaction ID
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant // Slightly lighter color
+                    )
+                    Spacer(modifier = Modifier.width(16.dp)) // Add space
+
+                    // Add an icon to copy the UPI string to the clipboard
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_copy),
+                        contentDescription = "Copy UPI",
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clickable {
+                                // copyToClipboard(context, "TXN ID", txnId)
+                            }
+                    )
+                }
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(start = 24.dp, bottom = 24.dp, top = 12.dp)
+                ) {
+                    Text(
+                        text = "RRN:", // RRN label
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.background // Standard text color
+                    )
+                    Spacer(modifier = Modifier.width(8.dp)) // Add space
+                    Text(
+                        text = rrn, // Display RRN
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant // Slightly lighter color
+                    )
+                    Spacer(modifier = Modifier.width(16.dp)) // Add space
+
+                    // Add an icon to copy the UPI string to the clipboard
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_copy),
+                        contentDescription = "Copy UPI",
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clickable {
+                                // copyToClipboard(context, "RRN", rrn)
+                            }
+                    )
+                }
+            }
+        }
+    }
+
+
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun AppBar() {
@@ -269,7 +295,7 @@ class PaymentFailedActivity : ComponentActivity() {
         TopAppBar(
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = Color(0xFF3F51B5),
-                titleContentColor = Color.White,
+                titleContentColor = MaterialTheme.colorScheme.onBackground
             ),
             title = {
             },

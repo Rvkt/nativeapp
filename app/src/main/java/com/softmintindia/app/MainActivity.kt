@@ -12,6 +12,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -75,15 +76,16 @@ class MainActivity : ComponentActivity() {
                             .padding(innerPadding)
                     ) {
                         // Use a Column to stack the button on top
-                        Column(modifier = Modifier.fillMaxSize()) {
+                        Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
                             Button(
                                 onClick = {
                                     PGSDKManager.initialize(
                                         context = this@MainActivity,
+                                        token = "U8lhxHPSNei90rUSaVebMC11fRyF1MLWrmTip+1yjInOO16/hbJVKf5f/QbRiIp69oHZ1lxqMLkq0aiwuAwtvfKWzCid83Y5zKPR4TaS3FTFgCEC+fe5vC5dTuLx6FzmYvupZRRJs1xVmTmjv8zW3alueclL8DCoesY+QOco4Eb7EmstLPdVsjmW8LDZNxDXh5ZK/ZRKSG4AKxt5wits6f9CpuEGU/VeO1mNCSTARxoF8ioaac/3jFyYWkrHz9HJ0q0D/T7tGHZhb/MnUogxS+vEN3QJtg6CaV0/Y8lEK0srfBz/EOzJDtPMi8IRoW+2VEjwsHoS3PMtjzlincbvRg==",
                                         amount = "10",
                                         remark = "SDK Initialization",
                                         identifier = "GANPATI001",
-                                        orderId = "TXN2024123017444"
+                                        orderId = generateOrderId()
                                     ) { success, message ->
                                         if (success) {
                                             // this@MainActivity.finish()
@@ -107,6 +109,7 @@ class MainActivity : ComponentActivity() {
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .background(MaterialTheme.colorScheme.background)
                                     .padding(horizontal = 8.dp),
                                 shape = RoundedCornerShape(4.dp)
                             ) {
@@ -146,6 +149,19 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    @SuppressLint("DefaultLocale")
+    fun generateOrderId(): String {
+        val currentTime = java.util.Calendar.getInstance()
+        val year = currentTime.get(java.util.Calendar.YEAR)
+        val day = currentTime.get(java.util.Calendar.DAY_OF_YEAR)
+        val hour = currentTime.get(java.util.Calendar.HOUR_OF_DAY)
+        val minute = currentTime.get(java.util.Calendar.MINUTE)
+        val second = currentTime.get(java.util.Calendar.SECOND)
+
+        return String.format("ORDERID%04d%03d%02d%02d%02d", year, day, hour, minute, second)
+    }
+
 }
 
 

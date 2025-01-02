@@ -52,16 +52,15 @@ android {
 
 dependencies {
 
-    implementation ("io.coil-kt:coil-compose:2.4.0")
+    implementation("io.coil-kt:coil-compose:2.4.0")
 
-    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation ("com.squareup.retrofit2:converter-moshi:2.4.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-moshi:2.4.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     testImplementation("com.squareup.okhttp3:okhttp:4.11.0")
 
-        testImplementation ("com.squareup.okhttp3:mockwebserver:4.9.0")  // or a newer version
-        testImplementation ("org.mockito:mockito-core:3.11.2") // Optional for mocking responses
-
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.9.0")  // or a newer version
+    testImplementation("org.mockito:mockito-core:3.11.2") // Optional for mocking responses
 
 
     implementation(project(":pgsdk"))
@@ -84,4 +83,5 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(kotlin("script-runtime"))
 }

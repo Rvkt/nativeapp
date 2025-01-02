@@ -27,7 +27,7 @@ fun DismissibleAlertDialog(
     payingTo: String,
     amount: String,
 ) {
-    var timeLeft by remember { mutableIntStateOf(10) }
+    var timeLeft by remember { mutableIntStateOf(2) }
 
     LaunchedEffect(Unit) {
         while (timeLeft > 0) {
