@@ -1,14 +1,10 @@
 package com.softmintindia.pgsdk
 
 import android.annotation.SuppressLint
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -52,7 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.softmintindia.pgsdk.Utils.copyToClipboard
+import com.softmintindia.pgsdk.utils.copyToClipboard
 import com.softmintindia.pgsdk.ui.theme.AppTheme
 import kotlinx.coroutines.delay
 import java.time.LocalDateTime

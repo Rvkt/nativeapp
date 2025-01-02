@@ -56,6 +56,7 @@ import com.softmintindia.pgsdk.PGSDKManager
 import com.softmintindia.pgsdk.PaymentFailedActivity
 import com.softmintindia.pgsdk.PaymentSuccessActivity
 import com.softmintindia.pgsdk.R
+import com.softmintindia.pgsdk.utils.DismissibleAlertDialog
 import kotlinx.coroutines.delay
 
 
@@ -64,9 +65,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
-
         enableEdgeToEdge()
         setContent {
             AppTheme {
@@ -82,13 +80,13 @@ class MainActivity : ComponentActivity() {
                                 onClick = {
                                     PGSDKManager.initialize(
                                         context = this@MainActivity,
-                                        amount = "1",
+                                        amount = "10",
                                         remark = "SDK Initialization",
                                         identifier = "GANPATI001",
-                                        orderId = "TXN20241230174410"
+                                        orderId = "TXN2024123017444"
                                     ) { success, message ->
                                         if (success) {
-//                                            this@MainActivity.finish()
+                                            // this@MainActivity.finish()
                                             Log.d("MainActivity", message)
                                             Toast.makeText(
                                                 this@MainActivity,
@@ -139,10 +137,8 @@ class MainActivity : ComponentActivity() {
 //                            )
 
 
-//                            PaymentScreen()
-
-
-                            InstalledAppsList()
+                            PaymentScreen()
+//                            InstalledAppsList()
 
                         }
                     }
@@ -150,382 +146,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-
-//    private fun makePostApiCall(
-//        userName: String,
-//        password: String,
-//        source: String,
-//        mode: String,
-//        otp: String
-//    ) {
-//        // Request body map
-//        val requestBody = mapOf(
-//            "userName" to userName,
-//            "password" to password,
-//            "source" to source,
-//            "mode" to mode,
-//            "otp" to otp
-//        )
-//
-//        val header = ApiHeaders.deviceIdHeader(context = this@MainActivity).toString()
-//
-//        val callback = ApiCallback<AuthenticationResponse> { success, data, message ->
-//            if (success) {
-//                Log.d("Response", "Success: $data")
-//
-//                if (data != null) {
-//                    if (data.status.toInt() == 6) {
-//                        Log.d("ApiCallback", "makePostApiCall: ${data.message}")
-//                    } else if (data.status.toInt() == 1) {
-//                        Log.d("ApiCallback", "makePostApiCall Submit OTP: ${data.message}")
-//                    }
-//                }
-//
-//            } else {
-//                Log.e("Error", "Failure: $message")
-//            }
-//        }
-//
-//
-//        ApiClient.apiService.authenticateUser(header, requestBody = requestBody)
-//            .enqueue(object : Callback<AuthenticationResponse> {
-//                override fun onResponse(
-//                    call: Call<AuthenticationResponse>,
-//                    response: Response<AuthenticationResponse>
-//                ) {
-//                    if (response.isSuccessful) {
-//                        val responseBody = response.body()
-//                        responseBody?.let {
-//                            Log.d("Authenticate User", "\n$it")
-//                            callback.onSuccess(it)
-//                        }
-//                    } else {
-//                        callback.onError("Response unsuccessful: ${response.errorBody()?.string()}")
-//                    }
-//                }
-//
-//                override fun onFailure(call: Call<AuthenticationResponse>, t: Throwable) {
-//                    callback.onError("Network call failed: ${t.message}")
-//                }
-//            })
-//    }
-
-//    private fun submitOtp(
-//        userName: String,
-//        password: String,
-//        source: String,
-//        mode: String,
-//        otp: String
-//    ) {
-//        // Request body map
-//        val requestBody = mapOf(
-//            "userName" to userName,
-//            "password" to password,
-//            "source" to source,
-//            "mode" to mode,
-//            "otp" to otp
-//        )
-//
-//        val header = ApiHeaders.deviceIdHeader(context = this@MainActivity).toString()
-//
-//        val callback = ApiCallback<AuthenticatedResponse> { success, data, message ->
-//            if (success) {
-//                Log.d("Response", "Success: $data")
-//
-//                if (data != null) {
-//                    if (data.status.toInt() == 6) {
-//                        Log.d("ApiCallback", "makePostApiCall: ${data.message}")
-//                    } else if (data.status.toInt() == 1) {
-//                        Log.d("ApiCallback", "makePostApiCall Submit OTP: ${data.message}")
-//                    }
-//                }
-//
-//            } else {
-//                Log.e("Error", "Failure: $message")
-//            }
-//        }
-//
-//
-//        ApiClient.apiService.verifyUser(header, requestBody = requestBody)
-//            .enqueue(object : Callback<AuthenticatedResponse> {
-//                override fun onResponse(
-//                    call: Call<AuthenticatedResponse>,
-//                    response: Response<AuthenticatedResponse>
-//                ) {
-//                    if (response.isSuccessful) {
-//                        val responseBody = response.body()
-//                        responseBody?.let {
-//                            Log.d("Authenticate User", "\n$it")
-//                            callback.onSuccess(it)
-//                        }
-//                    } else {
-//                        callback.onError("Response unsuccessful: ${response.errorBody()?.string()}")
-//                    }
-//                }
-//
-//
-//                override fun onFailure(call: Call<AuthenticatedResponse>, t: Throwable) {
-//                    callback.onError("Failed: ${t.message}")
-//                }
-//            })
-//    }
-
-//    private fun initiateUpiTxn(
-//        amount: String,
-//        remark: String,
-//        identifier: String,
-//        orderId: String,
-//    ) {
-//        // Request body map
-//        val requestBody = PgsdkInitRequest(amount, remark, identifier, orderId);
-//
-//        val header = ApiHeaders.withToken(context = this@MainActivity)
-//
-//        val callback = ApiCallback<PgsdkInitResponse> { success, data, message ->
-//            if (success) {
-//                Log.d("Response", "Success: $data")
-//
-//                if (data != null) {
-//                    if (data.status.toInt() == 6) {
-//                        Log.d("ApiCallback", "makePostApiCall: ${data.message}")
-//                    } else if (data.status.toInt() == 1) {
-//                        Log.d("ApiCallback", "makePostApiCall Submit OTP: ${data.data}")
-//                    }
-//                }
-//
-//            } else {
-//                Log.e("Error", "Failure: $message")
-//            }
-//        }
-//
-//
-//        ApiClient.apiService.pgsdkInitialize(header, requestBody = requestBody)
-//            .enqueue(object : Callback<PgsdkInitResponse> {
-//                override fun onResponse(
-//                    call: Call<PgsdkInitResponse>,
-//                    response: Response<PgsdkInitResponse>
-//                ) {
-//                    if (response.isSuccessful) {
-//                        val responseBody = response.body()
-//                        responseBody?.let {
-//                            Log.d("Authenticate User", "\n$it")
-//                            callback.onSuccess(it)
-//                        }
-//                    } else {
-//                        callback.onError("Response unsuccessful: ${response.errorBody()?.string()}")
-//                    }
-//                }
-//
-//                override fun onFailure(call: Call<PgsdkInitResponse>, t: Throwable) {
-//                    callback.onError("Network call failed: ${t.message}")
-//                }
-//            })
-//    }
-
-}
-
-
-@SuppressLint("DefaultLocale")
-@Composable
-fun DismissibleAlertDialog(
-    onDismiss: () -> Unit,
-    companyName: String,
-    payingTo: String,
-    amount: String,
-) {
-    var timeLeft by remember { mutableIntStateOf(10) }
-
-    LaunchedEffect(Unit) {
-        while (timeLeft > 0) {
-            delay(1000L)
-            timeLeft -= 1
-        }
-        onDismiss() // Close dialog after 1 minute
-    }
-
-    AlertDialog(
-        containerColor = Color.White,
-        onDismissRequest = { /* Do nothing to prevent dismissing on outside clicks */ },
-        title = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .padding(bottom = 8.dp)
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-            ) {
-
-                Image(
-                    painter = painterResource(id = R.drawable.ic_softmint),
-                    contentDescription = null,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                HorizontalDivider(
-                    modifier = Modifier
-                        .padding(top = 16.dp)
-                        .fillMaxWidth(),
-                    thickness = 1.dp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Text(
-                    text = "Payment Confirmation",
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontSize = 16.sp, fontWeight = FontWeight.Bold
-                    ),
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "This will only take a moment.",
-                    style = MaterialTheme.typography.labelLarge.copy(
-                        fontSize = 16.sp, fontStyle = FontStyle.Italic
-                    ),
-//                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
-//
-//                // Row containing "Paying to" and "Amount"
-//                Row(
-//                    horizontalArrangement = Arrangement.SpaceBetween,
-//                    modifier = Modifier.fillMaxWidth()
-//                ) {
-//                    Column(
-//                        modifier = Modifier
-//                            .weight(1f)
-//                            .wrapContentHeight(),
-//                        verticalArrangement = Arrangement.Center
-//                    ) {
-//                        Text(
-//                            text = "Paying to",
-//                            style = MaterialTheme.typography.labelSmall
-//                        )
-//                        Text(
-//                            text = payingTo,
-//                            style = MaterialTheme.typography.labelLarge.copy(
-//                                fontWeight = FontWeight.Bold,
-//                                fontSize = 16.sp
-//                            ),
-//                            color = MaterialTheme.colorScheme.primary
-//                        )
-//                    }
-//                    Column(
-//                        modifier = Modifier
-//                            .weight(1f)
-//                            .wrapContentHeight(),
-//                        horizontalAlignment = Alignment.End,
-//                        verticalArrangement = Arrangement.Center
-//                    ) {
-//                        Text(
-//                            text = "Amount",
-//                            style = MaterialTheme.typography.labelSmall
-//                        )
-//                        Text(
-//                            text = "₹ $amount",
-//                            style = MaterialTheme.typography.labelLarge.copy(
-//                                fontWeight = FontWeight.Bold,
-//                                fontSize = 16.sp
-//                            ),
-//                            color = MaterialTheme.colorScheme.primary
-//                        )
-//                    }
-//                }
-
-                // Horizontal Divider
-
-            }
-        },
-        text = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            ) {
-
-//                Text(
-//                    text = "Confirming you payment",
-//                    style = MaterialTheme.typography.headlineSmall.copy(fontSize = 16.sp),
-//                    textAlign = TextAlign.Center
-//                )
-
-
-//                Spacer(modifier = Modifier.height(32.dp))
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    // Column for Minutes
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .padding(end = 16.dp)
-                            .weight(1f) // Distribute space evenly
-                    ) {
-                        Text(
-                            text = String.format("%02d", timeLeft / 60), // Remaining minutes
-                            style = MaterialTheme.typography.displaySmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Minutes", style = MaterialTheme.typography.labelSmall
-                        )
-                    }
-
-                    // Colon separator
-                    Text(
-                        text = ":",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    // Column for Seconds
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.weight(1f) // Distribute space evenly
-                    ) {
-                        Text(
-                            text = String.format("%02d", timeLeft % 60), // Remaining seconds
-                            style = MaterialTheme.typography.displaySmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Seconds", style = MaterialTheme.typography.labelSmall
-                        )
-                    }
-                }
-
-                // Powered by UPI
-//                Spacer(modifier = Modifier.height(64.dp))
-//                Spacer(modifier = Modifier.weight(1f))
-
-//                Text(
-//                    text = "POWERED BY",
-//                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
-//                    textAlign = TextAlign.Center
-//                )
-//                Image(
-//                    painter = painterResource(id = R.drawable.ic_upi),
-//                    contentDescription = null,
-//                    modifier = Modifier
-//                        .size(48.dp)
-//                        .wrapContentHeight()
-//                        .fillMaxWidth()
-//                )
-            }
-        },
-        confirmButton = { /* No confirm button */ },
-        dismissButton = { /* No dismiss button */ },
-        modifier = Modifier.clip(RoundedCornerShape(16.dp)) // Custom shape
-    )
-
 }
 
 

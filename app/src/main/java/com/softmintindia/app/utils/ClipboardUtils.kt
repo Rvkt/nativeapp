@@ -1,4 +1,4 @@
-package com.softmintindia.pgsdk.Utils
+package com.softmintindia.pgsdk.utils
 
 import android.content.ClipboardManager
 import android.content.ClipData

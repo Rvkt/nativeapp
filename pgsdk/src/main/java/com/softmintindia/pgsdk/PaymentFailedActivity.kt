@@ -49,11 +49,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.softmintindia.pgsdk.Utils.copyToClipboard
+import com.softmintindia.pgsdk.utils.copyToClipboard
 import com.softmintindia.pgsdk.ui.theme.AppTheme
 import kotlinx.coroutines.delay
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 class PaymentFailedActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)

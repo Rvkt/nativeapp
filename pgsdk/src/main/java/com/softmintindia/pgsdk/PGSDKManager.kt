@@ -108,10 +108,11 @@ object PGSDKManager {
                             data.intentRequest
                         )
                     } else {
-                        showErrorActivity(context, responseData?.errorMessage.toString())
+                        showErrorActivity(context, responseData?.message.toString())
                     }
                 } else {
 
+                    Log.e(TAG, "Failed: $message")
                     if (message != null) {
                         sdkCallBack(false, message)
                         showErrorActivity(context, message)
@@ -136,11 +137,8 @@ object PGSDKManager {
                                 callback.onSuccess(it)
                             }
                         } else {
-
                             callback.onError(
-                                "Response unsuccessful: ${
-                                    response.errorBody()?.string()
-                                }"
+                                "Response unsuccessful: $response"
                             )
                         }
                     }
