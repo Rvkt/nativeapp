@@ -654,7 +654,6 @@ fun QRExpansionTile(
                     token,
                     onStatusSuccess = { data ->
                         activity.finish()
-
                         // Navigate to PaymentSuccessActivity
                         val intent = Intent(activity, PaymentSuccessActivity::class.java).apply {
                             putExtra("REMARK", data.remark)
@@ -665,6 +664,8 @@ fun QRExpansionTile(
                             putExtra("TXN_ID", data.orderId)
                             putExtra("RRN", data.rrn)
                         }
+
+//                        activity.setResult(Activity.RESULT_OK, intent)
 
                         activity.startActivity(intent)
                     },
@@ -681,6 +682,8 @@ fun QRExpansionTile(
                             putExtra("TXN_ID", data.orderId)
                             putExtra("RRN", data.rrn)
                         }
+
+                        activity.setResult(Activity.RESULT_OK, intent)
 
                         activity.startActivity(intent)
                     },
@@ -723,6 +726,9 @@ fun TimerWithStatusCheck(
                 val paymentStatus = checkTxnResponse?.data?.status
 
                 if (paymentStatus == "SUCCESS") {
+
+
+
                     onStatusSuccess(checkTxnResponse.data)
 
                     // Optionally, handle additional data from the response
@@ -1365,59 +1371,6 @@ fun InstalledUpiAppsExpansionTile(
                             }
                         }
                     }
-                }
-            }
-        }
-    }
-}
-
-
-@Composable
-fun ButtonList(visibleButtons: List<String>) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp, horizontal = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Group buttons into rows
-        visibleButtons.chunked(4).forEach { rowButtons ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp), // Space between buttons
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                rowButtons.forEach { button ->
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(bottom = 16.dp)
-                    ) {
-
-                        Button(
-                            onClick = { Log.d("ButtonClick", "App Name: $button") },
-                            shape = RoundedCornerShape(64.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_googlepay), // Replace with dynamic icons
-                                contentDescription = "App Icon", modifier = Modifier.size(36.dp)
-                            )
-                        }
-                        Text(
-                            text = button,
-                            fontSize = 12.sp,
-                            maxLines = 2,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            overflow = TextOverflow.Ellipsis,
-                            color = Color(0xFF5C6BC0),
-//                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-
                 }
             }
         }

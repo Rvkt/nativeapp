@@ -2,6 +2,7 @@ package com.softmintindia.pgsdk
 
 //import androidx.compose.foundation.layout.FlowRowScopeInstance.weight
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -59,18 +60,6 @@ class PaymentFailedActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        val successMessage =
-//            intent.getStringExtra("SUCCESS_MESSAGE") ?: "Payment completed successfully!"
-
-//        val currentDateTime = LocalDateTime.now()
-//        val dateFormatter = DateTimeFormatter.ofPattern("d MMM, yyyy")
-//        val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
-
-//        val payeeName = intent.getStringExtra("PAYEE_NAME") ?: "Unknown Payee"
-//        val amount = intent.getStringExtra("AMOUNT") ?: "N/A"
-//        val date = intent.getStringExtra("DATE") ?: "N/A"
-//        val time = intent.getStringExtra("TIME") ?: "N/A"
-//        val txnId = intent.getStringExtra("TXN_ID") ?: "N/A"
 
         val remark = intent.getStringExtra("REMARK") ?: "Payment completed successfully!"
         val payeeName = intent.getStringExtra("PAYEE_NAME") ?: "Unknown Payee"
@@ -80,6 +69,17 @@ class PaymentFailedActivity : ComponentActivity() {
         val txnId = intent.getStringExtra("TXN_ID") ?: "N/A"
         val rrn = intent.getStringExtra("RRN") ?: "N/A"
 
+
+        val resultIntent = intent.apply {
+            putExtra("REMARK", remark)
+            putExtra("PAYEE_NAME", payeeName)
+            putExtra("AMOUNT", amount)
+            putExtra("DATE", date)
+            putExtra("TIME", time)
+            putExtra("TXN_ID", txnId)
+            putExtra("RRN", rrn)
+        }
+        setResult(1001, resultIntent)
 
         // Set system UI visibility to non-transparent
         window.statusBarColor = Color(0xFF3F51B5).toArgb()

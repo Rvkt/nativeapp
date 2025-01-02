@@ -10,6 +10,8 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -63,6 +65,35 @@ import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+
+    private val startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+        if (result.resultCode == RESULT_OK) {
+            val data = result.data
+            // Retrieve the data from PaymentFailedActivity
+            val remark = data?.getStringExtra("REMARK")
+            val payeeName = data?.getStringExtra("PAYEE_NAME")
+            val amount = data?.getStringExtra("AMOUNT")
+            val date = data?.getStringExtra("DATE")
+            val time = data?.getStringExtra("TIME")
+            val txnId = data?.getStringExtra("TXN_ID")
+            val rrn = data?.getStringExtra("RRN")
+
+            // Log the received data
+            Log.d("PaymentFailedData", "REMARK: $remark")
+            Log.d("PaymentFailedData", "PAYEE_NAME: $payeeName")
+            Log.d("PaymentFailedData", "AMOUNT: $amount")
+            Log.d("PaymentFailedData", "DATE: $date")
+            Log.d("PaymentFailedData", "TIME: $time")
+            Log.d("PaymentFailedData", "TXN_ID: $txnId")
+            Log.d("PaymentFailedData", "RRN: $rrn")
+
+            // Use the data as needed, for example, showing a toast
+            Toast.makeText(this, "Payment Failed! Txn ID: $txnId", Toast.LENGTH_LONG).show()
+        }
+    }
+
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
