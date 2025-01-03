@@ -1,12 +1,15 @@
 package com.softmintindia.pgsdk
 
-//import androidx.compose.foundation.layout.FlowRowScopeInstance.weight
+//import com.softmintindia.pgsdk.utils.copyToClipboard
 import android.annotation.SuppressLint
-import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -44,6 +47,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
@@ -51,7 +55,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-//import com.softmintindia.pgsdk.utils.copyToClipboard
 import com.softmintindia.pgsdk.ui.theme.AppTheme
 import kotlinx.coroutines.delay
 
@@ -70,7 +73,6 @@ class PaymentFailedActivity : ComponentActivity() {
         val rrn = intent.getStringExtra("RRN") ?: "N/A"
         val name = intent.getStringExtra("NAME") ?: "N/A"
         val status = intent.getStringExtra("STATUS") ?: "N/A"
-
 
 
         // Set system UI visibility to non-transparent
@@ -101,7 +103,7 @@ class PaymentFailedActivity : ComponentActivity() {
             AppTheme {
                 // Scaffold with dynamic container color based on system theme
                 Scaffold(
-                    containerColor = MaterialTheme.colorScheme.background,
+                    containerColor = Color.White,
 //                    containerColor = MaterialTheme.colorScheme.background, // Adapts to light/dark theme
                     topBar = { AppBar() }
                 ) {
@@ -111,7 +113,8 @@ class PaymentFailedActivity : ComponentActivity() {
                         contentAlignment = Alignment.Center // This centers the content
                     ) {
 
-                        val timerState = remember { mutableIntStateOf(10) } // Initial 10 seconds timer
+                        val timerState =
+                            remember { mutableIntStateOf(10) } // Initial 10 seconds timer
 
                         // LaunchedEffect will update the timerState every second
                         LaunchedEffect(Unit) {
@@ -138,7 +141,7 @@ class PaymentFailedActivity : ComponentActivity() {
                                 fontSize = 12.sp,
                                 fontFamily = FontFamily.SansSerif,
                                 fontWeight = FontWeight.Normal,
-                                color = MaterialTheme.colorScheme.onBackground,
+                                color = Color.DarkGray,
                                 textAlign = TextAlign.Start
                             )
                             Spacer(modifier = Modifier.height(8.dp))
@@ -147,8 +150,8 @@ class PaymentFailedActivity : ComponentActivity() {
                                 fontSize = 24.sp,
                                 textAlign = TextAlign.Center,
                                 fontWeight = FontWeight.Bold,
-                                maxLines = 2,
-                                color = MaterialTheme.colorScheme.onBackground // Color adapts to light/dark mode
+                                maxLines = 1,
+                                color = Color(0xFF3F51B5) // Color adapts to light/dark mode
                             )
                             Spacer(modifier = Modifier.height(48.dp))
                             Image(
@@ -161,11 +164,21 @@ class PaymentFailedActivity : ComponentActivity() {
                             Text(
                                 text = remark,
                                 fontSize = 16.sp,
-                                color = MaterialTheme.colorScheme.onBackground,
+                                color = Color.DarkGray,
                             )
                             Spacer(modifier = Modifier.weight(1f))
 
-                            PaymentDetailsCard(payeeName, date, time, amount, txnId, rrn)
+                            PaymentDetailsCard(
+                                this@PaymentFailedActivity,
+                                payeeName,
+                                date,
+                                time,
+                                amount,
+                                txnId,
+                                rrn
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
 
 
                         }
@@ -177,6 +190,7 @@ class PaymentFailedActivity : ComponentActivity() {
 
     @Composable
     fun PaymentDetailsCard(
+        context: Context,
         payeeName: String,
         date: String,
         time: String,
@@ -184,12 +198,23 @@ class PaymentFailedActivity : ComponentActivity() {
         txnId: String,
         rrn: String
     ) {
+
+        fun copyToClipboard(context: Context, label: String, value: String) {
+            // Get the clipboard manager
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            // Create a new clip with the UPI string
+            val clip = ClipData.newPlainText(label, value)
+            // Set the clip in the clipboard
+            clipboard.setPrimaryClip(clip)
+            // Show a toast message to notify the user
+            Toast.makeText(context, "$label copied to clipboard", Toast.LENGTH_SHORT).show()
+        }
         Card(
-            modifier = Modifier.padding(16.dp) // Add padding around the card
+            modifier = Modifier.padding(0.dp) // Add padding around the card
         ) {
             Column(
                 modifier = Modifier
-                    .background(MaterialTheme.colorScheme.onBackground) // Set background color
+                    .background(Color(0xFF3F51B5)) // Set background color
                     .padding(16.dp) // Padding inside the card
             ) {
                 Row(
@@ -204,7 +229,7 @@ class PaymentFailedActivity : ComponentActivity() {
                             fontSize = 20.sp,
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.background, // Text color based on theme
+                            color = Color.White, // Text color based on theme
                             textAlign = TextAlign.Start
                         )
                         Spacer(modifier = Modifier.height(4.dp))
@@ -213,7 +238,8 @@ class PaymentFailedActivity : ComponentActivity() {
                             fontSize = 16.sp,
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Normal,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant, // Secondary text color
+                            color = Color.White, // Secondary text color
+//                            color = MaterialTheme.colorScheme.background, // Secondary text color
                             textAlign = TextAlign.Start
                         )
                     }
@@ -222,7 +248,7 @@ class PaymentFailedActivity : ComponentActivity() {
                         fontSize = 20.sp,
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary, // Primary color for emphasis
+                        color = Color.White, // Primary color for emphasis
                         textAlign = TextAlign.End
                     )
                 }
@@ -230,49 +256,50 @@ class PaymentFailedActivity : ComponentActivity() {
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .padding(start = 24.dp, top = 24.dp, bottom = 0.dp)
+                        .padding(start = 8.dp, top = 24.dp, bottom = 0.dp)
                 ) {
                     Text(
                         text = "TXN ID:", // Transaction ID label
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.background // Standard text color
+                        color = Color.White // Standard text color
                     )
                     Spacer(modifier = Modifier.width(8.dp)) // Add space
                     Text(
                         text = txnId, // Display transaction ID
                         fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant // Slightly lighter color
+                        color = Color.White // Slightly lighter color
                     )
                     Spacer(modifier = Modifier.width(16.dp)) // Add space
 
                     // Add an icon to copy the UPI string to the clipboard
                     Image(
                         painter = painterResource(id = R.drawable.ic_copy),
+                        colorFilter = ColorFilter.tint(Color.White),
                         contentDescription = "Copy UPI",
                         modifier = Modifier
                             .size(16.dp)
                             .clickable {
-                                // copyToClipboard(context, "TXN ID", txnId)
+                                copyToClipboard(context, "TXN ID", txnId)
                             }
                     )
                 }
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .padding(start = 24.dp, bottom = 24.dp, top = 12.dp)
+                        .padding(start = 8.dp, bottom = 16.dp, top = 8.dp)
                 ) {
                     Text(
                         text = "RRN:", // RRN label
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.background // Standard text color
+                        color = Color.White // Standard text color
                     )
                     Spacer(modifier = Modifier.width(8.dp)) // Add space
                     Text(
                         text = rrn, // Display RRN
                         fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant // Slightly lighter color
+                        color = Color.White // Slightly lighter color
                     )
                     Spacer(modifier = Modifier.width(16.dp)) // Add space
 
@@ -280,11 +307,13 @@ class PaymentFailedActivity : ComponentActivity() {
                     Image(
                         painter = painterResource(id = R.drawable.ic_copy),
                         contentDescription = "Copy UPI",
+                        colorFilter = ColorFilter.tint(Color.White),
                         modifier = Modifier
-                            .size(16.dp)
+                            .size(20.dp)
                             .clickable {
-                                // copyToClipboard(context, "RRN", rrn)
+                                copyToClipboard(context, "RRN", rrn)
                             }
+
                     )
                 }
             }
@@ -309,3 +338,4 @@ class PaymentFailedActivity : ComponentActivity() {
     }
 
 }
+

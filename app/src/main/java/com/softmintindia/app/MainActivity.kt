@@ -46,8 +46,7 @@ import com.softmintindia.app.ui.theme.AppTheme
 import com.softmintindia.pgsdk.PaymentActivity
 import com.softmintindia.pgsdk.PaymentFailedActivity
 import com.softmintindia.pgsdk.PaymentSuccessActivity
-import com.softmintindia.pgsdk.SdkActivity
-import com.softmintindia.pgsdk.data.api.NetworkCall
+import com.softmintindia.pgsdk.data.api.PaymentGateway
 import com.softmintindia.pgsdk.utils.DismissibleAlertDialog
 
 
@@ -123,40 +122,27 @@ class MainActivity : ComponentActivity() {
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.background)
+//                                .background(MaterialTheme.colorScheme.background)
+                                .background(MaterialTheme.colorScheme.surfaceBright)
                         ) {
 
-                            Button(
-                                onClick = {
-                                    val intent = Intent(
-                                        this@MainActivity,
-                                        SdkActivity::class.java
-                                    ).apply {
-                                        putExtra("token", "YourTokenHere")
-                                        putExtra("amount", "10")
-                                        putExtra("remark", "SDK Initialization")
-                                        putExtra("identifier", "GANPATI001")
-                                        putExtra("orderId", generateOrderId())
-                                    }
-                                    startForResult.launch(intent)
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(8.dp),
-                                shape = RoundedCornerShape(8.dp),
-                                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
-                            ) {
-                                Text(
-                                    text = "Navigate to SDK Activity",
-                                    modifier = Modifier.padding(8.dp),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                            }
+//                            NavigateToSdkButton(
+//                                onNavigate = {
+//                                    val intent = Intent(this@MainActivity, SdkActivity::class.java).apply {
+//                                        putExtra("token", "YourTokenHere")
+//                                        putExtra("amount", "10")
+//                                        putExtra("remark", "SDK Initialization")
+//                                        putExtra("identifier", "GANPATI001")
+//                                        putExtra("orderId", generateOrderId())
+//                                    }
+//                                    startForResult.launch(intent)
+//                                }
+//                            )
+
 
                             Button(
                                 onClick = {
-                                    NetworkCall.initiatePaymentApiCall(
+                                    PaymentGateway.initiatePaymentApiCall(
                                         context = this@MainActivity,
                                         token = "U8lhxHPSNei90rUSaVebMC11fRyF1MLWrmTip+1yjInOO16/hbJVKf5f/QbRiIp69oHZ1lxqMLkq0aiwuAwtvfKWzCid83Y5zKPR4TaS3FTFgCEC+fe5vC5dTuLx6FzmYvupZRRJs1xVmTmjv8zW3alueclL8DCoesY+QOco4Eb7EmstLPdVsjmW8LDZNxDXh5ZK/ZRKSG4AKxt5wits6f9CpuEGU/VeO1mNCSTARxoF8ioaac/3jFyYWkrHz9HJ0q0D/T7tGHZhb/MnUogxS+vEN3QJtg6CaV0/Y8lEK0srfBz/EOzJDtPMi8IRoW+2VEjwsHoS3PMtjzlincbvRg==",
                                         amount = "10",
@@ -176,10 +162,8 @@ class MainActivity : ComponentActivity() {
                                                 this@MainActivity, PaymentActivity::class.java
                                             ).apply {
                                                 if (responseData != null) {
-                                                    putExtra("amount", responseData.amount)
-                                                    putExtra("remark", responseData.remark)
-                                                    putExtra("identifier", responseData.identifire)
-                                                    putExtra("orderId", responseData.orderId)
+                                                    putExtra("REMARK", responseData.remark)
+                                                    putExtra("IDENTIFIER", responseData.identifire)
                                                     putExtra("COMPANY", responseData.companyName)
                                                     putExtra("AMOUNT", responseData.amount)
                                                     putExtra(
@@ -291,7 +275,7 @@ class MainActivity : ComponentActivity() {
 //                            )
 
 
-//                            PaymentScreen()
+                            PaymentScreen()
 //                            InstalledAppsList()
 
                         }
@@ -314,6 +298,29 @@ class MainActivity : ComponentActivity() {
     }
 
 }
+
+@Composable
+fun NavigateToSdkButton(
+    onNavigate: () -> Unit,
+    buttonText: String = "Navigate to SDK Activity"
+) {
+    Button(
+        onClick = onNavigate,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
+    ) {
+        Text(
+            text = buttonText,
+            modifier = Modifier.padding(8.dp),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onPrimary
+        )
+    }
+}
+
 
 
 @Composable

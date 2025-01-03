@@ -104,6 +104,7 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.common.BitMatrix
 import com.journeyapps.barcodescanner.BarcodeEncoder
+import com.softmintindia.pgsdk.data.api.PaymentGateway
 import com.softmintindia.pgsdk.domain.CheckTxnResponseData
 import com.softmintindia.pgsdk.domain.CheckTxnStatusResponse
 import com.softmintindia.pgsdk.ui.theme.AppTheme
@@ -287,7 +288,7 @@ fun MainContent(
         modifier = modifier
             .fillMaxSize()
             .fillMaxHeight()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color(0xFFFAFAFA))
             .verticalScroll(rememberScrollState())
             .padding(bottom = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -325,29 +326,6 @@ fun MainContent(
 //                }
             )
         }
-
-//        Spacer(modifier = Modifier.height(24.dp))
-//        Button(
-//            onClick = { Log.d("ButtonClick", "Continue clicked") },
-//            shape = RoundedCornerShape(8.dp),
-//            colors = ButtonDefaults.buttonColors(contentColor = Color(0xFF3F51B5)),
-//            modifier = Modifier
-////                .height(64.dp)
-//                .padding(16.dp)
-//                .wrapContentHeight()
-//                .fillMaxWidth()
-//        ) {
-//            Text(
-//                modifier = Modifier.padding(8.dp),
-//                text = "Continue",
-//                fontSize = 20.sp,
-//                color = Color.White,
-//                fontWeight = FontWeight.Bold
-//            )
-//        }
-
-        // Powered by UPI
-//        Spacer(modifier = Modifier.height(32.dp))
         Spacer(modifier = Modifier.weight(1f))
 
 
@@ -368,7 +346,7 @@ fun MainContent(
                 Text(
                     text = "POWERED BY",
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = Color.DarkGray,
                     textAlign = TextAlign.Center
                 )
                 Image(
@@ -390,7 +368,7 @@ fun MainContent(
                 Text(
                     text = "TRANSACTION PARTNER",
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = Color.DarkGray,
                     textAlign = TextAlign.Center,
                 )
                 Image(
@@ -604,7 +582,7 @@ fun QRExpansionTile(
             text = "Preferred Payment Methods",
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground,
+            color = Color.DarkGray,
             modifier = Modifier
                 .align(Alignment.Start)
                 .padding(top = 24.dp, bottom = 8.dp)
@@ -760,6 +738,13 @@ fun QRExpansionTile(
                     },
                     onTimerFinish = {
                         Log.d("TXN Status Check", "Timer Finished - Perform final action.")
+
+                        // Set the result for PaymentActivity
+                        val resultIntent = Intent().apply {
+                            putExtra("REMARK", "Transaction request is expired.")
+                        }
+                        activity.setResult(RESULT_OK, resultIntent)
+
                         activity.finish()
                     }
                 )
@@ -783,7 +768,7 @@ fun TimerWithStatusCheck(
     var timeLeft by remember { mutableStateOf(initialTime) }
     var formattedTime by remember { mutableStateOf("05:00") }
 
-    val paymentHelper = PaymentHelper()
+//    val paymentGateway = PaymentGateway
 
     // Timer logic using LaunchedEffect
     LaunchedEffect(key1 = timeLeft) {
@@ -791,7 +776,7 @@ fun TimerWithStatusCheck(
             Log.d("TXN Status Check", "Time left: $timeLeft")
             delay(10000L) // Wait for 10 seconds
 
-            paymentHelper.checkTxnStatus(context, orderId = txnId, token = token) { message, checkTxnResponse ->
+            PaymentGateway.checkTxnStatus(context, orderId = txnId, token = token) { message, checkTxnResponse ->
                 // Handle success or failure based on the values of isSuccess and message
 
                 val paymentStatus = checkTxnResponse?.data?.status
@@ -802,16 +787,16 @@ fun TimerWithStatusCheck(
 
                     onStatusSuccess(checkTxnResponse.data)
 
-                    // Optionally, handle additional data from the response
-                    checkTxnResponse.data.let { data ->
-                        Log.d("CheckTxnResponse", "SUCCESS_MESSAGE: ${data.remark}")
-                        Log.d("CheckTxnResponse", "TXN_ID: ${data.orderId}")
-                        Log.d("CheckTxnResponse", "Payee_Name: ${data.name}")
-                        Log.d("CheckTxnResponse", "Amount: ${data.amount}")
-                        Log.d("CheckTxnResponse", "Date: ${data.date}")
-                        Log.d("CheckTxnResponse", "Time: ${data.time}")
-                        Log.d("CheckTxnResponse", "Time: ${data.status}")
-                    }
+//                    // Optionally, handle additional data from the response
+//                    checkTxnResponse.data.let { data ->
+//                        Log.d("CheckTxnResponse", "SUCCESS_MESSAGE: ${data.remark}")
+//                        Log.d("CheckTxnResponse", "TXN_ID: ${data.orderId}")
+//                        Log.d("CheckTxnResponse", "Payee_Name: ${data.name}")
+//                        Log.d("CheckTxnResponse", "Amount: ${data.amount}")
+//                        Log.d("CheckTxnResponse", "Date: ${data.date}")
+//                        Log.d("CheckTxnResponse", "Time: ${data.time}")
+//                        Log.d("CheckTxnResponse", "Time: ${data.status}")
+//                    }
 
                     return@checkTxnStatus
                 }
@@ -821,15 +806,15 @@ fun TimerWithStatusCheck(
                     onStatusFailed(checkTxnResponse.data)
 
                     // Optionally, handle additional data from the response for FAILED status
-                    checkTxnResponse.data.let { data ->
-                        Log.e("CheckTxnResponse", "Failure Reason: ${data.remark}")
-                        Log.e("CheckTxnResponse", "TXN_ID: ${data.orderId}")
-                        Log.e("CheckTxnResponse", "Payee_Name: ${data.name}")
-                        Log.e("CheckTxnResponse", "Amount: ${data.amount}")
-                        Log.e("CheckTxnResponse", "Date: ${data.date}")
-                        Log.e("CheckTxnResponse", "Time: ${data.time}")
-                        Log.e("CheckTxnResponse", "Status: ${data.status}")
-                    }
+//                    checkTxnResponse.data.let { data ->
+//                        Log.e("CheckTxnResponse", "Failure Reason: ${data.remark}")
+//                        Log.e("CheckTxnResponse", "TXN_ID: ${data.orderId}")
+//                        Log.e("CheckTxnResponse", "Payee_Name: ${data.name}")
+//                        Log.e("CheckTxnResponse", "Amount: ${data.amount}")
+//                        Log.e("CheckTxnResponse", "Date: ${data.date}")
+//                        Log.e("CheckTxnResponse", "Time: ${data.time}")
+//                        Log.e("CheckTxnResponse", "Status: ${data.status}")
+//                    }
 
                     return@checkTxnStatus
                 }
