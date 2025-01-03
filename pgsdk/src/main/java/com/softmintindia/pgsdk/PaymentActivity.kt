@@ -18,6 +18,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
@@ -110,6 +111,35 @@ import kotlinx.coroutines.delay
 
 
 class PaymentActivity : ComponentActivity() {
+
+    private val startForResult =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+            if (result.resultCode == RESULT_OK) {
+                val data = result.data
+                // Retrieve the data from PaymentFailedActivity
+                val remark = data?.getStringExtra("REMARK")
+                val payeeName = data?.getStringExtra("PAYEE_NAME")
+                val amount = data?.getStringExtra("AMOUNT")
+                val date = data?.getStringExtra("DATE")
+                val time = data?.getStringExtra("TIME")
+                val txnId = data?.getStringExtra("TXN_ID")
+                val rrn = data?.getStringExtra("RRN")
+                val status = data?.getStringExtra("STATUS")
+                val name = data?.getStringExtra("NAME")
+
+                // Log the received data
+                Log.d("Payment Failed Callback", "REMARK: $remark")
+                Log.d("Payment Failed Callback", "PAYEE_NAME: $payeeName")
+                Log.d("Payment Failed Callback", "AMOUNT: $amount")
+                Log.d("Payment Failed Callback", "DATE: $date")
+                Log.d("Payment Failed Callback", "TIME: $time")
+                Log.d("Payment Failed Callback", "TXN_ID: $txnId")
+                Log.d("Payment Failed Callback", "RRN: $rrn")
+                Log.d("Payment Failed Callback", "STATUS: $status")
+                Log.d("Payment Failed Callback", "NAME: $name")
+            }
+        }
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -231,6 +261,13 @@ fun LargeTopAppBar(companyName: String, amount: String) {
         }, scrollBehavior = scrollBehavior
     )
 }
+
+//// Launch an external activity
+//private fun launchPaymentFailedActivity() {
+//    val intent = Intent(this, PaymentFailedActivity::class.java)
+//    intent.putExtra("EXTRA_INFO", "Sample Data")
+//    startForResult.launch(intent)
+//}
 
 
 @Composable
@@ -654,6 +691,21 @@ fun QRExpansionTile(
                     txnId,
                     token,
                     onStatusSuccess = { data ->
+
+                        // Set the result for PaymentActivity
+                        val resultIntent = Intent().apply {
+                            putExtra("REMARK", data.remark)
+                            putExtra("PAYEE_NAME", data.name)
+                            putExtra("AMOUNT", data.amount)
+                            putExtra("DATE", data.date)
+                            putExtra("TIME", data.time)
+                            putExtra("TXN_ID", data.orderId)
+                            putExtra("RRN", data.rrn)
+                            putExtra("NAME", data.name)
+                            putExtra("STATUS", data.status)
+                        }
+                        activity.setResult(RESULT_OK, resultIntent)
+
                         // Navigate to PaymentSuccessActivity
                         val intent = Intent(activity, PaymentSuccessActivity::class.java).apply {
                             putExtra("REMARK", data.remark)
@@ -668,11 +720,25 @@ fun QRExpansionTile(
 
                         }
 
-                        activity.setResult(RESULT_OK, intent)
+//                        activity.setResult(RESULT_OK, intent)
+                        activity.startActivity(intent)
                         activity.finish()
-//                        activity.startActivity(intent)
                     },
                     onStatusFailed = { data ->
+
+                        // Set the result for PaymentActivity
+                        val resultIntent = Intent().apply {
+                            putExtra("REMARK", data.remark)
+                            putExtra("PAYEE_NAME", data.name)
+                            putExtra("AMOUNT", data.amount)
+                            putExtra("DATE", data.date)
+                            putExtra("TIME", data.time)
+                            putExtra("TXN_ID", data.orderId)
+                            putExtra("RRN", data.rrn)
+                            putExtra("NAME", data.name)
+                            putExtra("STATUS", data.status)
+                        }
+                        activity.setResult(RESULT_OK, resultIntent)
 
                         // Navigate to PaymentFailedActivity
                         val intent = Intent(activity, PaymentFailedActivity::class.java).apply {
@@ -686,11 +752,11 @@ fun QRExpansionTile(
                             putExtra("NAME", data.name)
                             putExtra("STATUS", data.status)
                         }
+                        activity.startActivity(intent)
 
-                        activity.setResult(RESULT_OK, intent)
+//                        activity.setResult(RESULT_OK, intent)
                         activity.finish()
 
-//                        activity.startActivity(intent)
                     },
                     onTimerFinish = {
                         Log.d("TXN Status Check", "Timer Finished - Perform final action.")

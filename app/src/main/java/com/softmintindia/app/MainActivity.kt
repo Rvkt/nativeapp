@@ -2,6 +2,7 @@ package com.softmintindia.app
 
 //import com.softmintindia.pgsdk.PGSDKManager.showInitializationDialog
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -80,7 +81,28 @@ class MainActivity : ComponentActivity() {
                 Log.d("SDK Callback", "NAME: $name")
 
                 // Use the data as needed, for example, showing a toast
-                Toast.makeText(this, "Payment Failed! Txn ID: $txnId", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this, "Payment Failed! Txn ID: $txnId", Toast.LENGTH_LONG).show()
+
+                // Build and show the dialog
+                val dialogBuilder = AlertDialog.Builder(this)
+                dialogBuilder.setTitle("Payment Details")
+                dialogBuilder.setMessage(
+                    """
+                Remark: $remark
+                Payee Name: $payeeName
+                Amount: $amount
+                Date: $date
+                Time: $time
+                Transaction ID: $txnId
+                RRN: $rrn
+                Status: $status
+                Name: $name
+                """.trimIndent()
+                )
+                dialogBuilder.setPositiveButton("OK") { dialog, _ ->
+                    dialog.dismiss()
+                }
+                dialogBuilder.create().show()
             }
         }
 
