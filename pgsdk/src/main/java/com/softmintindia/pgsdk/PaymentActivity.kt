@@ -755,6 +755,7 @@ fun QRExpansionTile(
     }
 }
 
+
 @Composable
 fun TimerWithStatusCheck(
     context: Context,
@@ -768,76 +769,130 @@ fun TimerWithStatusCheck(
     var timeLeft by remember { mutableStateOf(initialTime) }
     var formattedTime by remember { mutableStateOf("05:00") }
 
-//    val paymentGateway = PaymentGateway
+    fun formatTime(timeInMillis: Long): String {
+        return String.format(
+            "%02d:%02d",
+            timeInMillis / 60000,
+            (timeInMillis % 60000) / 1000
+        )
+    }
 
-    // Timer logic using LaunchedEffect
+    // LaunchedEffect for second-by-second timer update
+    // Countdown timer logic
     LaunchedEffect(key1 = timeLeft) {
-        if (timeLeft > 0) {
-            Log.d("TXN Status Check", "Time left: $timeLeft")
-            delay(10000L) // Wait for 10 seconds
+        while (timeLeft > 0) {
+            delay(1000L) // Wait for 1 second
+            timeLeft -= 1000L // Decrement by 1 second
+            formattedTime = formatTime(timeLeft) // Update formatted time
 
-            PaymentGateway.checkTxnStatus(context, orderId = txnId, token = token) { message, checkTxnResponse ->
-                // Handle success or failure based on the values of isSuccess and message
-
-                val paymentStatus = checkTxnResponse?.data?.status
-
-                if (paymentStatus == "SUCCESS") {
-
-
-
-                    onStatusSuccess(checkTxnResponse.data)
-
-//                    // Optionally, handle additional data from the response
-//                    checkTxnResponse.data.let { data ->
-//                        Log.d("CheckTxnResponse", "SUCCESS_MESSAGE: ${data.remark}")
-//                        Log.d("CheckTxnResponse", "TXN_ID: ${data.orderId}")
-//                        Log.d("CheckTxnResponse", "Payee_Name: ${data.name}")
-//                        Log.d("CheckTxnResponse", "Amount: ${data.amount}")
-//                        Log.d("CheckTxnResponse", "Date: ${data.date}")
-//                        Log.d("CheckTxnResponse", "Time: ${data.time}")
-//                        Log.d("CheckTxnResponse", "Time: ${data.status}")
-//                    }
-
-                    return@checkTxnStatus
-                }
-
-                if (paymentStatus == "FAILED") {
-                    // Call failure callback
-                    onStatusFailed(checkTxnResponse.data)
-
-                    // Optionally, handle additional data from the response for FAILED status
-//                    checkTxnResponse.data.let { data ->
-//                        Log.e("CheckTxnResponse", "Failure Reason: ${data.remark}")
-//                        Log.e("CheckTxnResponse", "TXN_ID: ${data.orderId}")
-//                        Log.e("CheckTxnResponse", "Payee_Name: ${data.name}")
-//                        Log.e("CheckTxnResponse", "Amount: ${data.amount}")
-//                        Log.e("CheckTxnResponse", "Date: ${data.date}")
-//                        Log.e("CheckTxnResponse", "Time: ${data.time}")
-//                        Log.e("CheckTxnResponse", "Status: ${data.status}")
-//                    }
-
-                    return@checkTxnStatus
-                }
+            // Check if the timer has reached zero
+            if (timeLeft <= 0) {
+                onTimerFinish()
             }
-
-            // Decrease time and update formatted time
-            timeLeft -= 10000L
-            formattedTime = String.format(
-                "%02d:%02d", timeLeft / 60000, (timeLeft % 60000) / 1000
-            )
-        } else {
-            // If the timer runs out
-            onTimerFinish()
         }
     }
 
+    // LaunchedEffect for 10-second status check
+    LaunchedEffect(key1 = timeLeft / 10000) { // Trigger every 10 seconds
+        if (timeLeft > 0 && (timeLeft / 10000) > 0) {
+            delay(10000L)
+            Log.d("TXN Status Check", "Time left: $timeLeft ms")
+
+            PaymentGateway.checkTxnStatus(context, orderId = txnId, token = token) { message, checkTxnResponse ->
+                val paymentStatus = checkTxnResponse?.data?.status
+
+                when (paymentStatus) {
+                    "SUCCESS" -> {
+                        onStatusSuccess(checkTxnResponse.data)
+                        return@checkTxnStatus
+                    }
+                    "FAILED" -> {
+                        onStatusFailed(checkTxnResponse.data)
+                        return@checkTxnStatus
+                    }
+                    else -> {
+                        Log.d("CheckTxnResponse", "Status: $paymentStatus, Message: $message")
+                    }
+                }
+            }
+        }
+    }
+
+    // Timer logic using LaunchedEffect
+//    LaunchedEffect(key1 = timeLeft) {
+//        if (timeLeft > 0) {
+//            Log.d("TXN Status Check", "Time left: $timeLeft")
+//            delay(10000L) // Wait for 10 seconds
+//
+//            PaymentGateway.checkTxnStatus(context, orderId = txnId, token = token) { message, checkTxnResponse ->
+//                // Handle success or failure based on the values of isSuccess and message
+//
+//                val paymentStatus = checkTxnResponse?.data?.status
+//
+//                if (paymentStatus == "SUCCESS") {
+//
+//
+//
+//                    onStatusSuccess(checkTxnResponse.data)
+//
+////                    // Optionally, handle additional data from the response
+////                    checkTxnResponse.data.let { data ->
+////                        Log.d("CheckTxnResponse", "SUCCESS_MESSAGE: ${data.remark}")
+////                        Log.d("CheckTxnResponse", "TXN_ID: ${data.orderId}")
+////                        Log.d("CheckTxnResponse", "Payee_Name: ${data.name}")
+////                        Log.d("CheckTxnResponse", "Amount: ${data.amount}")
+////                        Log.d("CheckTxnResponse", "Date: ${data.date}")
+////                        Log.d("CheckTxnResponse", "Time: ${data.time}")
+////                        Log.d("CheckTxnResponse", "Time: ${data.status}")
+////                    }
+//
+//                    return@checkTxnStatus
+//                }
+//
+//                if (paymentStatus == "FAILED") {
+//                    // Call failure callback
+//                    onStatusFailed(checkTxnResponse.data)
+//
+//                    // Optionally, handle additional data from the response for FAILED status
+////                    checkTxnResponse.data.let { data ->
+////                        Log.e("CheckTxnResponse", "Failure Reason: ${data.remark}")
+////                        Log.e("CheckTxnResponse", "TXN_ID: ${data.orderId}")
+////                        Log.e("CheckTxnResponse", "Payee_Name: ${data.name}")
+////                        Log.e("CheckTxnResponse", "Amount: ${data.amount}")
+////                        Log.e("CheckTxnResponse", "Date: ${data.date}")
+////                        Log.e("CheckTxnResponse", "Time: ${data.time}")
+////                        Log.e("CheckTxnResponse", "Status: ${data.status}")
+////                    }
+//
+//                    return@checkTxnStatus
+//                }
+//            }
+//
+//            // Decrease time and update formatted time
+//            timeLeft -= 10000L
+//            formattedTime = String.format(
+//                "%02d:%02d", timeLeft / 60000, (timeLeft % 60000) / 1000
+//            )
+//        } else {
+//            // If the timer runs out
+//            onTimerFinish()
+//        }
+//    }
+
     // UI to display remaining time
-    Text(
-        text = "Time Remaining: $formattedTime",
-        fontSize = 16.sp,
-        color = Color.Gray,
-        modifier = Modifier.padding(16.dp)
-    )
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "Time Remaining: $formattedTime",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            fontFamily = FontFamily.SansSerif,
+            color = Color.DarkGray,
+            modifier = Modifier.padding(vertical = 12.dp)
+        )
+    }
 }
 
 

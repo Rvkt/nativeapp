@@ -6,6 +6,7 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -25,12 +26,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,8 +41,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.softmintindia.app.presentation.InstalledAppsList
 import com.softmintindia.app.presentation.showToast
 import com.softmintindia.app.ui.theme.AppTheme
@@ -211,6 +218,8 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
 
+//                            CountdownTimerScreen()
+
 
 //                            Button(
 //                                onClick = {
@@ -275,7 +284,7 @@ class MainActivity : ComponentActivity() {
 //                            )
 
 
-                            PaymentScreen()
+//                            PaymentScreen()
 //                            InstalledAppsList()
 
                         }
@@ -298,6 +307,51 @@ class MainActivity : ComponentActivity() {
     }
 
 }
+
+@Composable
+fun CountdownTimerScreen() {
+    var remainingTime by remember { mutableStateOf("05:00") }
+    val context = LocalContext.current // Access the context for showing toast
+
+    LaunchedEffect(Unit) {
+        object : CountDownTimer(5 * 60 * 1000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                val minutes = millisUntilFinished / 1000 / 60
+                val seconds = millisUntilFinished / 1000 % 60
+                remainingTime = String.format("%02d:%02d", minutes, seconds)
+
+                // Show toast every 10 seconds
+                if (seconds % 10 == 0L) {
+                    Toast.makeText(
+                        context,
+                        "Remaining time: $remainingTime",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            override fun onFinish() {
+                remainingTime = "00:00"
+                Toast.makeText(context, "Time's up!", Toast.LENGTH_SHORT).show()
+            }
+        }.start()
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = remainingTime,
+            fontSize = 48.sp,
+            fontFamily = FontFamily.Monospace,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
 
 @Composable
 fun NavigateToSdkButton(
